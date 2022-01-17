@@ -1,5 +1,4 @@
 //code serveur
-// console.log('Voilà du code JavaScript');
 const http = require('http');
 const app = require('./app');
 
@@ -15,6 +14,7 @@ const normalizePort = val => {
   }
   return false;
 };
+
 const port = normalizePort(process.env.PORT || '3000');
 //écoute la réponse du serveur pour l'afficher sur le port donné ou sur le port 3000
 app.set('port', port);

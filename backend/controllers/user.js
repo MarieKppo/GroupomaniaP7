@@ -1,52 +1,232 @@
-//fonctions applicables à la route utilisateur = logique métier
-//const bcrypt = require('bcrypt');
-//const jwt = require('jsonwebtoken');
-//const User = require('../models/User');
+// modules
+const mysql = require('../Database').connection; //connecion bdd
+const env = require('../environnement'); //créer variables d'environnement
+const bcrypt = require('bcrypt'); //hacher le mdp
+const jwt = require('jsonwebtoken');//token sécu
+const fs = require('fs'); //génère fichier stockés
 
-//Connexion à un compte utilisateur : login (get)
-//SELECT * FROM user WHERE id = tokenId JOIN post ON user.id_user = post.id_user
-exports.login = (req, res, next) => {
-    console.log('connexion user');
-    // User.findOne({email: req.body.email })
-    //     .then(User => {
+//fonction pour créer un compte
+exports.signup = (req, res, next) => {
+    console.log('route pour créer un utilisateur');
+    bcrypt.hash(req.body.password, 10)
+        .then(hash => {
+            const email = req.body.email;
+            const firstName = req.body.firstName;
+            const lastName = req.body.lastName;
+            const password = hash;
 
-    //     })
+            let sqlSignup;
+            let values;
+
+            sqlSignup = "INSERT INTO users VALUES (NULL, ?, ?, ?, ?, NULL, profilePic, NOW()), '0'";
+            values = [lastName, firstName, email, password,];
+            mysql.query(sqlSignup, values, function (err, result) {
+                if (err) {
+                    return res.status(500).json(err.message);
+                };
+                res.status(201).json({ message: "Utilisateur créé !" });
+            });
+        })
+        .catch(e => res.status(500).json(e));
 }
 
-//Création d'un compte utilisateur : sign up (post)
-exports.signup = (req, res, next) =>{
-    //création de table si existe pas ?
-    let sql = "CREATE TABLE  IF NOT EXISTS user (id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100) NOT NULL, firstname VARCHAR(100) NOT NULL,    email VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(100) NOT NULL, pseudo VARCHAR(100) DEFAULT NULL, #id_authority INTEGER DEFAULT NULL)";
-    groupomania.query(sql, function (err, result) {
-        if (err) throw err;
-        console.log("Table created");
+// fonction pour se connecter
+exports.login = (req, res, next) => {
+    console.log('se connecter ?');
+    // const email = req.body.email;
+    // const password = req.body.password;
+
+    // const sqlFindUser = "SELECT userID, password FROM User WHERE email = ?";
+
+    // mysql.query(sqlFindUser, [email], function (err, result) {
+    //     if (err) {
+    //         return res.status(500).json(err.message);
+    //     };
+    //     if (result.length == 0) {
+    //         return res.status(401).json({ error: "Utilisateur non trouvé !" });
+    //     }
+    //     bcrypt.compare(password, result[0].password)
+    //         .then(valid => {
+    //             if (!valid) {
+    //                 return res.status(401).json({ error: "Mot de passe incorrect !" });
+    //             }
+    //             res.status(200).json({
+    //                 token: jwt.sign(
+    //                     { userID: result[0].userID },
+    //                     env.token,
+    //                     { expiresIn: "24h" }
+    //                 )
+    //             });
+    //         })
+    //         .catch(e => res.status(500).json(e));
+    // });
+}
+
+// fonction pour supprimer son compte
+exports.deleteOneUser = (req, res, next) => {
+    const password = req.body.password;
+    let passwordHashed;
+    const userID = res.locals.userID;
+
+    let sqlFindUser;
+    let sqlDeleteUser;
+
+    sqlFindUser = "SELECT password, avatarUrl FROM User WHERE userID = ?";
+    mysql.query(sqlFindUser, [userID], function (err, result) {
+        if (err) {
+            return res.status(500).json(err.message);
+        }
+        if (result.length == 0) {
+            return res.status(401).json({ error: "Utilisateur non trouvé !" });
+        }
+
+        const filename = result[0].avatarUrl.split("/images/")[1];
+        if (filename !== "avatarDefault.jpg") {
+            fs.unlink(`images/${filename}`, (e) => { // On supprime le fichier image en amont
+                if (e) {
+                    console.log(e);
+                }
+            })
+        }
+        passwordHashed = result[0].password;
+
+        bcrypt.compare(password, passwordHashed)
+            .then(valid => {
+                if (!valid) {
+                    return res.status(401).json({ error: "Mot de passe incorrect !" });
+                }
+                sqlDeleteUser = "DELETE FROM User WHERE userID = ?";
+                mysql.query(sqlDeleteUser, [userID], function (err, result) {
+                    if (err) {
+                        return res.status(500).json(err.message);
+                    };
+                    if (result.affectedRows == 0) {
+                        return res.status(400).json({ message: "Suppression échouée" });
+                    }
+                    res.status(200).json({ message: "Utilisateur supprimé !" });
+                });
+            })
+            .catch(e => res.status(500).json(e));
     });
-    //création d'un user 
-    let insertUser = "INSERT INTO user ('name','firstname','email', 'password', 'pseudo') VALUES ('Dupont', 'Paul', 'paul.dupont@gmail.com', 'motdepassedepaul', 'Polo')";
-    groupomania.query(insertUser, function (err, result) {
-        if (err) throw err;
-        console.log('utilisateur ajouté' + result);
+}
+
+// fonction pour afficher le profil
+exports.getOneUser = (req, res, next) => {
+    const userID = res.locals.userID;
+    let userIDAsked = req.params.id;
+
+    let sqlGetUser;
+
+    if (userIDAsked === "yourProfile") {
+        userIDAsked = userID;
+    }
+
+    sqlGetUser = `SELECT email, firstName, lastName, pseudo, bio, avatarUrl, DATE_FORMAT(dateCreation, 'Inscrit depuis le %e %M %Y à %kh%i') AS dateCreation,
+    COUNT(CASE WHEN userID = ? then 1 else null end) AS yourProfile FROM User WHERE userID = ?`;
+    mysql.query(sqlGetUser, [userID, userIDAsked], function (err, result) {
+        if (err) {
+            return res.status(500).json(err.message);
+        };
+        if (result.length == 0) {
+            return res.status(400).json({ message: "Aucun utilisateur ne correspond à votre requête" });
+        }
+        res.status(200).json(result);
     });
-};
+}
 
-//     // regex mail et condition mdp
-//       //hash du mot de passe
-//       bcrypt.hash(req.body.password, 10)
-//           .then(hash => {
-//               const user = new User({
-//                   email: req.body.email,
-//                   password: hash
-//               });
-//               user.save()
-//               .then(() => res.status(201).json({message: 'Utilisateur créé !'}))
-//               .catch(error => res.status(400).json({error}));
-//           })
-//           .catch(error => res.status(500).json({error}));
-//   };
+// fonction de modif du profil
+exports.modifyOneUser = (req, res, next) => {
+    const userID = res.locals.userID;
+    const email = req.body.email;
+    const pseudo = req.body.pseudo;
+    const bio = req.body.bio;
+    const password = req.body.password;
 
+    let sqlFindUser;
+    let sqlModifyUser;
+    let sqlChangePassword;
+    let values;
 
-//to modify (put)
-//UPDATE user SET 'password' = 'newpassword' WHERE 'id_user' = 'token.id_user';
+    if (req.file) { // Si le changement concerne l'avatar on update directement
+        const avatarUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
 
-//to delete (delete)
-//DELETE * FROM user WHERE 'id_user' =  'token.id_user';
+        sqlFindUser = "SELECT avatarUrl FROM User WHERE userID = ?";
+        mysql.query(sqlFindUser, [userID], function (err, result) {
+            if (err) {
+                return res.status(500).json(err.message);
+            }
+
+            const filename = result[0].avatarUrl.split("/images/")[1];
+            sqlModifyUser = "UPDATE User SET avatarUrl = ? WHERE userID = ?";
+            if (filename !== "avatarDefault.jpg") {
+                fs.unlink(`images/${filename}`, () => { // On supprime le fichier image en amont
+                    mysql.query(sqlModifyUser, [avatarUrl, userID], function (err, result) {
+                        if (err) {
+                            return res.status(500).json(err.message);
+                        };
+                        return res.status(200).json({ message: "Utilisateur modifé !" });
+                    });
+                })
+            } else {
+                mysql.query(sqlModifyUser, [avatarUrl, userID], function (err, result) {
+                    if (err) {
+                        return res.status(500).json(err.message);
+                    };
+                    return res.status(200).json({ message: "Utilisateur modifé !" });
+                });
+            }
+        });
+
+    } else { // Si le changement concerne les infos de l'user on demande le mdp
+        sqlFindUser = "SELECT password FROM User WHERE userID = ?";
+        mysql.query(sqlFindUser, [userID], function (err, result) {
+            if (err) {
+                return res.status(500).json(err.message);
+            }
+            if (result.length == 0) {
+                return res.status(401).json({ error: "Utilisateur non trouvé !" });
+            }
+
+            const newPassword = req.body.newPassword;
+            const passwordHashed = result[0].password;
+            bcrypt.compare(password, passwordHashed)
+                .then(valid => {
+                    if (!valid) {
+                        return res.status(401).json({ error: "Mot de passe incorrect !" });
+                    }
+
+                    if (newPassword) { // Si un nouveau mdp est défini
+                        bcrypt.hash(newPassword, 10)
+                            .then(hash => {
+                                sqlChangePassword = "UPDATE User SET email=?, pseudo=?, bio=?, password=? WHERE userID = ?";
+                                values = [email, pseudo, bio, hash, userID];
+                                mysql.query(sqlChangePassword, values, function (err, result) {
+                                    if (err) {
+                                        return res.status(500).json(err.message);
+                                    }
+                                    if (result.affectedRows == 0) {
+                                        return res.status(400).json({ message: "Changement échoué !" });
+                                    }
+                                    res.status(200).json({ message: "Changement réussi !" });
+                                });
+                            })
+                            .catch(e => res.status(500).json(e));
+
+                    } else { // Si le mdp reste le même
+                        sqlModifyUser = "UPDATE User SET email=?, pseudo=?, bio=? WHERE userID = ?";
+                        values = [email, pseudo, bio, userID];
+                        mysql.query(sqlModifyUser, values, function (err, result) {
+                            if (err) {
+                                return res.status(500).json(err.message);
+                            }
+                            if (result.affectedRows == 0) {
+                                return res.status(400).json({ message: "Changement échoué !" });
+                            }
+                            res.status(200).json({ message: "Changement réussi !" });
+                        });
+                    }
+                })
+                .catch(e => res.status(500).json(e));
+        });
+    }
+}
