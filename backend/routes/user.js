@@ -10,7 +10,7 @@ const multer = require('../middlewares/multer-config');
 
 //routes du parcours utilisateur à implementer
 router.post('/signup', userCtrl.signup); //inscription 
-router.post('/login', auth, userCtrl.login); //connexion
+router.post('/login', userCtrl.login); //connexion
 router.delete('/delete', userCtrl.deleteOneUser);//supprimer le profil user
 router.get('/profile/:id', auth, userCtrl.getOneUser);//afficher 1 user 
 router.put('/profile/:id', auth, userCtrl.modifyOneUser); //modifier un user

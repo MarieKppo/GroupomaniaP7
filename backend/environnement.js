@@ -2,7 +2,7 @@
 const dotenv = require("dotenv").config();
 
 module.exports = {
-    groupomaniaId: process.env.DB_ID,
-    groupomaniaPW: process.env.DB_PW,
+    groupomaniaId: process.env.Groupomania_ID,
+    groupomaniaPW: process.env.Groupomania_PW,
     token: process.env.TOKEN
 }

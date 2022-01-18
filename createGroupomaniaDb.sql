@@ -18,7 +18,7 @@ CREATE TABLE users (
     email VARCHAR(150) NOT NULL UNIQUE,
 	pseudo VARCHAR(50),
 	password VARCHAR(100) NOT NULL UNIQUE,
-	profilePic VARCHAR(150) NOT NULL DEFAULT 'http://localhost:3000/images/avatarDefault.jpg',
+	profilePic VARCHAR(150) NULL, --ajouter une photo par défaut ?
 	dateCreation DATETIME NOT NULL,
 	PRIMARY KEY (id)
 )

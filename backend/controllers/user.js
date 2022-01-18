@@ -7,7 +7,7 @@ const fs = require('fs'); //génère fichier stockés
 
 //fonction pour créer un compte
 exports.signup = (req, res, next) => {
-    console.log('route pour créer un utilisateur');
+    // console.log('route pour créer un utilisateur');
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const email = req.body.email;
@@ -18,14 +18,16 @@ exports.signup = (req, res, next) => {
             let sqlSignup;
             let values;
 
-            sqlSignup = "INSERT INTO users VALUES (NULL, ?, ?, ?, ?, NULL, profilePic, NOW()), '0'";
-            values = [lastName, firstName, email, password,];
+            sqlSignup = "INSERT INTO users (lastName, firstName, email, password) VALUES (?, ?, ?, ?)";
+            values = [lastName, firstName, email, password]; // nécessité d'un tableau pour que mysql query boucle sur les données
+
             mysql.query(sqlSignup, values, function (err, result) {
                 if (err) {
                     return res.status(500).json(err.message);
                 };
-                res.status(201).json({ message: "Utilisateur créé !" });
+                res.status(201).json({ message: "Compte créé !" });
             });
+            
         })
         .catch(e => res.status(500).json(e));
 }
@@ -33,46 +35,46 @@ exports.signup = (req, res, next) => {
 // fonction pour se connecter
 exports.login = (req, res, next) => {
     console.log('se connecter ?');
-    // const email = req.body.email;
-    // const password = req.body.password;
+    const email = req.body.email;
+    const password = req.body.password;
 
-    // const sqlFindUser = "SELECT userID, password FROM User WHERE email = ?";
+    const sqlFindUser = "SELECT id, password FROM users WHERE email = ?";
 
-    // mysql.query(sqlFindUser, [email], function (err, result) {
-    //     if (err) {
-    //         return res.status(500).json(err.message);
-    //     };
-    //     if (result.length == 0) {
-    //         return res.status(401).json({ error: "Utilisateur non trouvé !" });
-    //     }
-    //     bcrypt.compare(password, result[0].password)
-    //         .then(valid => {
-    //             if (!valid) {
-    //                 return res.status(401).json({ error: "Mot de passe incorrect !" });
-    //             }
-    //             res.status(200).json({
-    //                 token: jwt.sign(
-    //                     { userID: result[0].userID },
-    //                     env.token,
-    //                     { expiresIn: "24h" }
-    //                 )
-    //             });
-    //         })
-    //         .catch(e => res.status(500).json(e));
-    // });
+    mysql.query(sqlFindUser, email, function (err, result) {
+        if (err) {
+            return res.status(500).json(err.message);
+        };
+        if (result.length == 0) {
+            return res.status(401).json({ error: "Compte utilisateur non trouvé !" });
+        }
+        bcrypt.compare(password, result[0].password)
+            .then(valid => {
+                if (!valid) {
+                    return res.status(401).json({ error: "Mot de passe incorrect !" });
+                }
+                res.status(200).json({
+                    token: jwt.sign(
+                        { userId: result[0].userId },
+                        env.token,
+                        { expiresIn: "24h" }
+                    )
+                });
+            })
+            .catch(e => res.status(500).json(e));
+    });
 }
 
 // fonction pour supprimer son compte
 exports.deleteOneUser = (req, res, next) => {
     const password = req.body.password;
     let passwordHashed;
-    const userID = res.locals.userID;
+    const userId = res.locals.userId;
 
     let sqlFindUser;
     let sqlDeleteUser;
 
-    sqlFindUser = "SELECT password, avatarUrl FROM User WHERE userID = ?";
-    mysql.query(sqlFindUser, [userID], function (err, result) {
+    sqlFindUser = "SELECT password, profilePic FROM users WHERE userId = ?";
+    mysql.query(sqlFindUser, userId, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         }
@@ -80,9 +82,9 @@ exports.deleteOneUser = (req, res, next) => {
             return res.status(401).json({ error: "Utilisateur non trouvé !" });
         }
 
-        const filename = result[0].avatarUrl.split("/images/")[1];
-        if (filename !== "avatarDefault.jpg") {
-            fs.unlink(`images/${filename}`, (e) => { // On supprime le fichier image en amont
+        const filename = result[0].profilePic.split("/images/")[1];
+        if (filename !== "testprofilepic.jpg") {
+            fs.unlink(`images/${filename}`, (e) => { // On supprime le fichier image
                 if (e) {
                     console.log(e);
                 }
@@ -95,15 +97,15 @@ exports.deleteOneUser = (req, res, next) => {
                 if (!valid) {
                     return res.status(401).json({ error: "Mot de passe incorrect !" });
                 }
-                sqlDeleteUser = "DELETE FROM User WHERE userID = ?";
+                sqlDeleteUser = "DELETE FROM users WHERE userId = ?";
                 mysql.query(sqlDeleteUser, [userID], function (err, result) {
                     if (err) {
                         return res.status(500).json(err.message);
                     };
                     if (result.affectedRows == 0) {
-                        return res.status(400).json({ message: "Suppression échouée" });
+                        return res.status(400).json({ message: "échec suppression" });
                     }
-                    res.status(200).json({ message: "Utilisateur supprimé !" });
+                    res.status(200).json({ message: "Compte utilisateur supprimé !" });
                 });
             })
             .catch(e => res.status(500).json(e));
@@ -112,23 +114,23 @@ exports.deleteOneUser = (req, res, next) => {
 
 // fonction pour afficher le profil
 exports.getOneUser = (req, res, next) => {
-    const userID = res.locals.userID;
-    let userIDAsked = req.params.id;
+    const userId = res.locals.userID;
+    let userIdAsked = req.params.id;
 
     let sqlGetUser;
 
-    if (userIDAsked === "yourProfile") {
-        userIDAsked = userID;
+    if (userIdAsked === "users.id") {
+        userIdAsked = userId;
     }
 
-    sqlGetUser = `SELECT email, firstName, lastName, pseudo, bio, avatarUrl, DATE_FORMAT(dateCreation, 'Inscrit depuis le %e %M %Y à %kh%i') AS dateCreation,
-    COUNT(CASE WHEN userID = ? then 1 else null end) AS yourProfile FROM User WHERE userID = ?`;
+    sqlGetUser = `SELECT id AS users.id, lastName, firstName, email, pseudo, profilePic,
+    FROM users WHERE userId = ?`;
     mysql.query(sqlGetUser, [userID, userIDAsked], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         };
         if (result.length == 0) {
-            return res.status(400).json({ message: "Aucun utilisateur ne correspond à votre requête" });
+            return res.status(400).json({ message: "aucun utilisateur trouvé avec cet id" });
         }
         res.status(200).json(result);
     });
@@ -136,97 +138,5 @@ exports.getOneUser = (req, res, next) => {
 
 // fonction de modif du profil
 exports.modifyOneUser = (req, res, next) => {
-    const userID = res.locals.userID;
-    const email = req.body.email;
-    const pseudo = req.body.pseudo;
-    const bio = req.body.bio;
-    const password = req.body.password;
-
-    let sqlFindUser;
-    let sqlModifyUser;
-    let sqlChangePassword;
-    let values;
-
-    if (req.file) { // Si le changement concerne l'avatar on update directement
-        const avatarUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-
-        sqlFindUser = "SELECT avatarUrl FROM User WHERE userID = ?";
-        mysql.query(sqlFindUser, [userID], function (err, result) {
-            if (err) {
-                return res.status(500).json(err.message);
-            }
-
-            const filename = result[0].avatarUrl.split("/images/")[1];
-            sqlModifyUser = "UPDATE User SET avatarUrl = ? WHERE userID = ?";
-            if (filename !== "avatarDefault.jpg") {
-                fs.unlink(`images/${filename}`, () => { // On supprime le fichier image en amont
-                    mysql.query(sqlModifyUser, [avatarUrl, userID], function (err, result) {
-                        if (err) {
-                            return res.status(500).json(err.message);
-                        };
-                        return res.status(200).json({ message: "Utilisateur modifé !" });
-                    });
-                })
-            } else {
-                mysql.query(sqlModifyUser, [avatarUrl, userID], function (err, result) {
-                    if (err) {
-                        return res.status(500).json(err.message);
-                    };
-                    return res.status(200).json({ message: "Utilisateur modifé !" });
-                });
-            }
-        });
-
-    } else { // Si le changement concerne les infos de l'user on demande le mdp
-        sqlFindUser = "SELECT password FROM User WHERE userID = ?";
-        mysql.query(sqlFindUser, [userID], function (err, result) {
-            if (err) {
-                return res.status(500).json(err.message);
-            }
-            if (result.length == 0) {
-                return res.status(401).json({ error: "Utilisateur non trouvé !" });
-            }
-
-            const newPassword = req.body.newPassword;
-            const passwordHashed = result[0].password;
-            bcrypt.compare(password, passwordHashed)
-                .then(valid => {
-                    if (!valid) {
-                        return res.status(401).json({ error: "Mot de passe incorrect !" });
-                    }
-
-                    if (newPassword) { // Si un nouveau mdp est défini
-                        bcrypt.hash(newPassword, 10)
-                            .then(hash => {
-                                sqlChangePassword = "UPDATE User SET email=?, pseudo=?, bio=?, password=? WHERE userID = ?";
-                                values = [email, pseudo, bio, hash, userID];
-                                mysql.query(sqlChangePassword, values, function (err, result) {
-                                    if (err) {
-                                        return res.status(500).json(err.message);
-                                    }
-                                    if (result.affectedRows == 0) {
-                                        return res.status(400).json({ message: "Changement échoué !" });
-                                    }
-                                    res.status(200).json({ message: "Changement réussi !" });
-                                });
-                            })
-                            .catch(e => res.status(500).json(e));
-
-                    } else { // Si le mdp reste le même
-                        sqlModifyUser = "UPDATE User SET email=?, pseudo=?, bio=? WHERE userID = ?";
-                        values = [email, pseudo, bio, userID];
-                        mysql.query(sqlModifyUser, values, function (err, result) {
-                            if (err) {
-                                return res.status(500).json(err.message);
-                            }
-                            if (result.affectedRows == 0) {
-                                return res.status(400).json({ message: "Changement échoué !" });
-                            }
-                            res.status(200).json({ message: "Changement réussi !" });
-                        });
-                    }
-                })
-                .catch(e => res.status(500).json(e));
-        });
-    }
+   console.log('modifier un user')
 }

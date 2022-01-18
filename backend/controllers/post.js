@@ -4,17 +4,17 @@ const fs = require("fs"); // Permet de gérer les fichiers stockés
 
 // fonction pour afficher tous les posts
 exports.getAllPosts = (req, res, next) => {
-    const userID = res.locals.userID;
+    const userId = res.locals.userId;
 
     let sqlGetPosts;
 
-    sqlGetPosts = `SELECT Post.postID, post.userID, legend, gifUrl, DATE_FORMAT(post.dateCreation, 'le %e %M %Y à %kh%i') AS dateCreation, firstName, lastName, pseudo, avatarUrl,
-    COUNT(CASE WHEN reaction.reaction = 1 then 1 else null end) AS countUp, 
-    COUNT(CASE WHEN reaction.reaction = -1 then 1 else null end) AS countDown,
-    SUM(CASE WHEN reaction.userID = ? AND reaction.reaction = 1 then 1 WHEN reaction.userID = ? AND reaction.reaction = -1 then -1 else 0 end) AS yourReaction,
-    COUNT(CASE WHEN Post.userID = ? then 1 else null end) AS yourPost
-    FROM Post LEFT OUTER JOIN User ON Post.userID = User.userID LEFT OUTER JOIN Reaction ON Post.postID = Reaction.postID WHERE post.postIDComment IS NULL GROUP BY Post.postID ORDER BY post.postID DESC`;
-    mysql.query(sqlGetPosts, [userID, userID, userID], function (err, result) {
+    sqlGetPosts = `SELECT users.id, posts.id AS 'post id', posts.date AS 'post date', share.id_post AS 'share id', share.share_date
+    FROM users, posts, share
+    WHERE users.id = posts.id_user
+    AND users.id = share.id_user 
+    AND users.id = 1
+    ORDER BY posts.date, share.share_date ASC LIMIT 20`;
+    mysql.query(sqlGetPosts, userId, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         };
@@ -27,23 +27,20 @@ exports.getAllPosts = (req, res, next) => {
 
 // fonction recup une publi
 exports.getOnePost = (req, res, next) => {
-    const userID = res.locals.userID;
-    const postID = req.params.id;
+    const userId = res.locals.userId;
+    const postId = req.params.id;
 
     let sqlGetPost;
 
-    sqlGetPost = `SELECT Post.postID, post.userID, legend, body, gifUrl, DATE_FORMAT(post.dateCreation, 'le %e %M %Y à %kh%i') AS dateCreation, firstName, lastName, pseudo, avatarUrl,
-    COUNT(CASE WHEN reaction.reaction = 1 then 1 else null end) AS countUp, 
-    COUNT(CASE WHEN reaction.reaction = -1 then 1 else null end) AS countDown,
-    SUM(CASE WHEN reaction.userID = ? AND reaction.reaction = 1 then 1 WHEN reaction.userID = ? AND reaction.reaction = -1 then -1 else 0 end) AS yourReaction,
-    COUNT(CASE WHEN Post.userID = ? then 1 else null end) AS yourPost
-    FROM Post LEFT OUTER JOIN User ON Post.userID = User.userID LEFT OUTER JOIN Reaction ON Post.postID = Reaction.postID WHERE Post.postID = ? OR Post.postIDComment = ? GROUP BY Post.postID ORDER BY post.postID DESC`;
-    mysql.query(sqlGetPost, [userID, userID, userID, postID, postID], function (err, result) {
+    sqlGetPost = `SELECT users.id, posts.id AS 'post id', posts.date AS 'post date', share.id_post AS 'share id', share.share_date
+    FROM users, posts, share
+    WHERE posts.id = postsId`;
+    mysql.query(sqlGetPost, userId, postId, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         };
         if (result.length == 0) {
-            return res.status(400).json({ message: "Aucun post à afficher !" });
+            return res.status(400).json({ message: "Pas de publication à afficher !" });
         }
         res.status(200).json(result);
     });
@@ -51,17 +48,17 @@ exports.getOnePost = (req, res, next) => {
 
 // créer une publi
 exports.createPost = (req, res, next) => {
-    const userID = res.locals.userID;
-    const legend = req.body.legend;
+    const userID = res.locals.userId;
+    const legend = req.body.textContent;
     const gifUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-    console.log(gifUrl);
+    console.log(urlContent);
     console.log(req.file.filename)
 
     let sqlCreatePost;
     let values;
 
-    sqlCreatePost = "INSERT INTO post VALUES (NULL, ?, ?, ?, NULL, NULL, NOW())";
-    values = [userID, legend, gifUrl];
+    sqlCreatePost = "INSERT INTO posts VALUES (NULL, ?, ?, ?, NULL, NULL, NOW())";
+    values = [userId, textContent, urlContent];
     mysql.query(sqlCreatePost, values, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -73,31 +70,31 @@ exports.createPost = (req, res, next) => {
 // suppression d'une publi
 exports.deleteOnePost = (req, res, next) => {
     const postID = req.params.id;
-    const userID = res.locals.userID;
+    const userID = res.locals.userId;
 
     let sqlDeletePost;
     let sqlSelectPost;
 
-    sqlSelectPost = "SELECT gifUrl FROM Post WHERE postID = ?";
+    sqlSelectPost = "SELECT urlContent FROM posts WHERE postId = ?";
     mysql.query(sqlSelectPost, [postID], function (err, result) {
         if (result > 0) {
             const filename = result[0].gifUrl.split("/images/")[1];
             fs.unlink(`images/${filename}`, () => { // On supprime le fichier image en amont
-                sqlDeletePost = "DELETE FROM Post WHERE userID = ? AND postID = ?";
-                mysql.query(sqlDeletePost, [userID, postID], function (err, result) {
+                sqlDeletePost = "DELETE FROM posts WHERE userId = ? AND postId = ?";
+                mysql.query(sqlDeletePost, userId, postId, function (err, result) {
                     if (err) {
                         return res.status(500).json(err.message);
                     };
-                    res.status(200).json({ message: "Post supprimé !" });
+                    res.status(200).json({ message: "Publication effacée !" });
                 });
             })
         } else {
-            sqlDeletePost = "DELETE FROM Post WHERE userID = ? AND postID = ?";
-            mysql.query(sqlDeletePost, [userID, postID], function (err, result) {
+            sqlDeletePost = "DELETE FROM posts WHERE userId = ? AND postId = ?";
+            mysql.query(sqlDeletePost, userId, postId, function (err, result) {
                 if (err) {
                     return res.status(500).json(err.message);
                 };
-                res.status(200).json({ message: "Post supprimé !" });
+                res.status(200).json({ message: "Publication supprimée !" });
             });
         }
         if (err) {
@@ -109,20 +106,20 @@ exports.deleteOnePost = (req, res, next) => {
 }
 
 // fonction pour commenter
-exports.createComment = (req, res, next) => {
-    const postID = req.params.id;
-    const userID = res.locals.userID;
+exports.sharePost = (req, res, next) => {
+    const postId = req.params.id;
+    const userId = res.locals.userId;
     const body = req.body.body;
 
-    let sqlCreateComment;
+    let sqlSharePost;
     let values;
 
-    sqlCreateComment = "INSERT INTO post VALUES (NULL, ?, NULL, NULL, ?, ?, NOW())";
-    values = [userID, postID, body];
-    mysql.query(sqlCreateComment, values, function (err, result) {
+    sqlSharePost = "INSERT INTO comments VALUES (NULL, ?, ?, NOW())";
+    values = [userId, postId];
+    mysql.query(sqlSharePost, values, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         };
-        res.status(201).json({ message: "Commentaire crée !" });
+        res.status(201).json({ message: "Publication partagée!" });
     });
 }

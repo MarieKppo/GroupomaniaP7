@@ -3,13 +3,14 @@ const mysql = require('mysql');
 const env = require('./environnement'); //récup variables env
 
 //création connexion
-exports.connection = mysql.createPool({
+exports.connection = mysql.createPool({  // stockage de connexion 
   host: "localhost",
-  user: "root", //`${env.groupomaniaId}`,
-  password: "", // `${env.groupomaniaPW}`,
+  user:  `${env.groupomaniaId}`,//"root",
+  password: `${env.groupomaniaPW}`,//"", 
   database : "groupomania",
   timezone : "local", 
-  charset : 'utf8mb4'
+  charset : 'utf8mb4',
+  connectionLimit : 10, //avec limite d'users en simultané selon charge de connexion
 });
 
 console.log('connecté à la bdd via database.js')

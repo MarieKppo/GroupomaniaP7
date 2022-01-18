@@ -12,6 +12,6 @@ router.get('/', auth, postCtrl.getAllPosts); //afficher ttes les publi
 router.get('/:id', auth, postCtrl.getOnePost); //afficher une publi
 router.post('/', auth, multer, postCtrl.createPost); //écrire une publi
 router.delete('/:id', auth, postCtrl.deleteOnePost); //suppri une publi
-router.post('/:id/comment', auth, postCtrl.createComment);//ajouter un commentaire
+router.post('/:id/share', auth, postCtrl.sharePost);//partager une publi
 
 module.exports = router;
