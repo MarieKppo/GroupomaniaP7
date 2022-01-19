@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt'); //hacher le mdp
 const jwt = require('jsonwebtoken');//token sécu
 const fs = require('fs'); //génère fichier stockés
 
-//fonction pour créer un compte
+//fonction pour créer un compte //testée ok
 exports.signup = (req, res, next) => {
     // console.log('route pour créer un utilisateur');
     bcrypt.hash(req.body.password, 10)
@@ -32,17 +32,19 @@ exports.signup = (req, res, next) => {
         .catch(e => res.status(500).json(e));
 }
 
-// fonction pour se connecter
+// fonction pour se connecter //testée ok
 exports.login = (req, res, next) => {
-    console.log('se connecter ?');
+    // console.log('se connecter ?');
     const email = req.body.email;
     const password = req.body.password;
+    // console.log(res);
 
     const sqlFindUser = "SELECT id, password FROM users WHERE email = ?";
 
     mysql.query(sqlFindUser, email, function (err, result) {
+        // console.log(result);
         if (err) {
-            return res.status(500).json(err.message);
+            return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
         };
         if (result.length == 0) {
             return res.status(401).json({ error: "Compte utilisateur non trouvé !" });
@@ -54,7 +56,7 @@ exports.login = (req, res, next) => {
                 }
                 res.status(200).json({
                     token: jwt.sign(
-                        { userId: result[0].userId },
+                        { userId: result[0].id },
                         env.token,
                         { expiresIn: "24h" }
                     )
@@ -111,21 +113,18 @@ exports.deleteOneUser = (req, res, next) => {
             .catch(e => res.status(500).json(e));
     });
 }
-
 // fonction pour afficher le profil
 exports.getOneUser = (req, res, next) => {
-    const userId = res.locals.userID;
-    let userIdAsked = req.params.id;
+    // console.log(res.locals)
+    // const userId = res.locals.userId;
+    let userId = req.params.id;
+    console.log('fonction getOneUser ' + userId)
 
     let sqlGetUser;
 
-    if (userIdAsked === "users.id") {
-        userIdAsked = userId;
-    }
-
-    sqlGetUser = `SELECT id AS users.id, lastName, firstName, email, pseudo, profilePic,
-    FROM users WHERE userId = ?`;
-    mysql.query(sqlGetUser, [userID, userIDAsked], function (err, result) {
+    sqlGetUser = `SELECT id AS userId, lastName, firstName, email, pseudo, profilePic
+    FROM users WHERE id = ?`;
+    mysql.query(sqlGetUser, [userId], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         };
