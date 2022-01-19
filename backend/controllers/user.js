@@ -66,6 +66,109 @@ exports.login = (req, res, next) => {
     });
 }
 
+// fonction pour afficher le profil
+exports.getOneUser = (req, res, next) => {
+    let userId = req.params.id;
+    // console.log('fonction getOneUser ' + userId)
+
+    let sqlGetUser;
+
+    sqlGetUser = `SELECT id AS userId, lastName, firstName, email, pseudo, profilePic
+    FROM users WHERE id = ?`;
+    mysql.query(sqlGetUser, [userId], function (err, result) {
+        if (err) {
+            return res.status(500).json(err.message);
+        };
+        if (result.length == 0) {
+            return res.status(400).json({ message: "aucun utilisateur trouvé avec cet id" });
+        }
+        res.status(200).json(result);
+    });
+}
+
+// fonction de modif du profil
+exports.modifyOneUser = (req, res, next) => {
+    console.log('modifier un user');
+    const userId = req.params.id;
+    const email = req.body.email;
+    const pseudo = req.body.pseudo;
+    const password = req.body.password;
+
+    let sqlFindUser;
+    let sqlModifyUser;
+    let sqlChangePassword;
+    let values; // attention tableau de valeurs pour permettre à mysql de boucler sur chaque champ !
+
+    if (req.file) { // si modif photo de profil // A TESTER
+        const profilePic = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+
+        sqlFindUser = `SELECT profilePic FROM users WHERE userId = ?`;
+        mysql.query(sqlFindUser, [userId], function(err, result){
+            if (err) {
+                return res.status(500).json(err.message);
+            }
+            const filename = result[0].profilePic.split("/images/")[1];
+            sqlModifyUser = `UPDATE users SET profilePic = ? WHERE id = ?`;
+            if (filename !== "defaultProfilePic.jpg") {
+                fs.unlink(`images/${filename}`, () => { //suppression du fichier si diff de photo par défaut 
+                    mysql.query(sqlModifyUser, [profilePic, userId], function (err, result){ //ajout nouvelle photo
+                        if (err) {
+                            return res.status(500).json(err.message);
+                        };
+                        return res.status(200).json({message : "Photo de profil modifiée !"});
+                    });
+                })
+            } else { //ajout de la nouvelle photo à la place de celle par défaut
+                mysql.query(sqlModifyUser, [profilePic, userId], function(err, result){
+                    if (err) {
+                        return res.status(500).json(err.message);
+                    };
+                    return res.status(200).json({message : "Photo de profil modifiée ! Dommage le chaton était tout mims"})
+                });
+            }
+        });
+
+    } else { // si modif mdp demande du mdp d'origine
+        console.log("modifcation du mdp")
+        sqlFindUser = `SELECT password FROM users WHERE userId=?`;
+        mysql.query(sqlFindUser, [userId], function(err, result){
+            if(err){
+                return res.status(500).json(err.message);
+            }
+            if (result.length == 0){
+                return res.status(401).json({error: "Mauvais identifiant."});
+            }
+
+            const newPassword = req.body.newPassword;
+            const hashedPassword = result[0].password;
+            bcrypt.compare(password, hashedPassword)
+                .then(valid => {
+                    if(!valid){
+                        return res.status(401).json({error: "Mot de passe incorrect !"});
+                    }
+                    if (newPassword){ // si un nouvo mdp est donné
+                        bcrypt.hash(newPassword, 10)
+                            .then(hash => {
+                                sqlChangePassword = `UPDATE users SET password=? WHERE id=?`;
+                                values = [hash, userId];
+                                mysql.query(sqlChangePassword, values, function(err, result) {
+                                    if(err){
+                                        return res.status(500).json(err.message);
+                                    }
+                                    if (result.affectedRows == 0) {
+                                        return res.status(400).json({message: "Echec du chgmt du mdp"});
+                                    }
+                                    return res.status(200).json({message : "changement réussi, bravo !"});
+                                });
+                            })
+                    }
+                })
+                .catch(e=>res.status(500).json(e));
+        });
+    }
+
+} // fin fonction modification
+
 // fonction pour supprimer son compte
 exports.deleteOneUser = (req, res, next) => {
     const password = req.body.password;
@@ -112,30 +215,4 @@ exports.deleteOneUser = (req, res, next) => {
             })
             .catch(e => res.status(500).json(e));
     });
-}
-// fonction pour afficher le profil
-exports.getOneUser = (req, res, next) => {
-    // console.log(res.locals)
-    // const userId = res.locals.userId;
-    let userId = req.params.id;
-    console.log('fonction getOneUser ' + userId)
-
-    let sqlGetUser;
-
-    sqlGetUser = `SELECT id AS userId, lastName, firstName, email, pseudo, profilePic
-    FROM users WHERE id = ?`;
-    mysql.query(sqlGetUser, [userId], function (err, result) {
-        if (err) {
-            return res.status(500).json(err.message);
-        };
-        if (result.length == 0) {
-            return res.status(400).json({ message: "aucun utilisateur trouvé avec cet id" });
-        }
-        res.status(200).json(result);
-    });
-}
-
-// fonction de modif du profil
-exports.modifyOneUser = (req, res, next) => {
-   console.log('modifier un user')
 }
