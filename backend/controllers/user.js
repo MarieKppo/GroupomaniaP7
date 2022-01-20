@@ -14,13 +14,15 @@ exports.signup = (req, res, next) => {
             const firstName = req.body.firstName;
             const lastName = req.body.lastName;
             const password = hash;
+            const pseudo = req.body.pseudo;
+            const profilePic = req.body.profilePic;
 
             let sqlSignup;
             let values;
 
-            sqlSignup = "INSERT INTO users (lastName, firstName, email, password) VALUES (?, ?, ?, ?)";
-            values = [lastName, firstName, email, password]; // nécessité d'un tableau pour que mysql query boucle sur les données
-
+            sqlSignup = "INSERT INTO users (lastName, firstName, email, password, pseudo, profilePic) VALUES (?, ?, ?, ?, ?, ?)";
+            values = [lastName, firstName, email, password, pseudo, profilePic]; // nécessité d'un tableau pour que mysql query boucle sur les données
+            
             mysql.query(sqlSignup, values, function (err, result) {
                 if (err) {
                     return res.status(500).json(err.message);
@@ -52,7 +54,7 @@ exports.login = (req, res, next) => {
         bcrypt.compare(password, result[0].password)
             .then(valid => {
                 if (!valid) {
-                    return res.status(401).json({ error: "Mot de passe incorrect !" });
+                    return res.status(401).json({ error: "Mot de passe incorrect !" }); //ou identifiant
                 }
                 res.status(200).json({
                     token: jwt.sign(
@@ -166,53 +168,65 @@ exports.modifyOneUser = (req, res, next) => {
                 .catch(e=>res.status(500).json(e));
         });
     }
-
+    next();
 } // fin fonction modification
 
 // fonction pour supprimer son compte
 exports.deleteOneUser = (req, res, next) => {
     const password = req.body.password;
-    let passwordHashed;
-    const userId = res.locals.userId;
+    const userIdToDelete = req.params.id; //id de l'url/route
+    const token = req.headers.authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
 
-    let sqlFindUser;
-    let sqlDeleteUser;
+    console.log("user to delete : " + userIdToDelete )
+    console.log("userId : " + userId )
 
-    sqlFindUser = "SELECT password, profilePic FROM users WHERE userId = ?";
-    mysql.query(sqlFindUser, userId, function (err, result) {
-        if (err) {
-            return res.status(500).json(err.message);
-        }
-        if (result.length == 0) {
-            return res.status(401).json({ error: "Utilisateur non trouvé !" });
-        }
+    if(userIdToDelete != userId){
+        return res.status(403).json({message : "Vous n'avez pas les droits nécessaires à la suppression de ce profil."});
+    } 
+    else {
+        console.log("dans le else")
+        let sqlDeleteUser;
 
-        const filename = result[0].profilePic.split("/images/")[1];
-        if (filename !== "testprofilepic.jpg") {
-            fs.unlink(`images/${filename}`, (e) => { // On supprime le fichier image
-                if (e) {
-                    console.log(e);
-                }
-            })
-        }
-        passwordHashed = result[0].password;
+        let sqlFindUser = "SELECT password, profilePic FROM users WHERE id = ?"; //recup user dans bdd
+        mysql.query(sqlFindUser, [userId], function (err, result) {
+            if (err) {
+                return res.status(500).json(err.message);
+            }
+            if (result.length == 0) {
+                return res.status(401).json({ error: "Utilisateur non trouvé !" });
+            }
+            const filename = result[0].profilePic; //.split("/images/")[1];
+            console.log("filename : " + filename);
 
-        bcrypt.compare(password, passwordHashed)
-            .then(valid => {
-                if (!valid) {
-                    return res.status(401).json({ error: "Mot de passe incorrect !" });
-                }
-                sqlDeleteUser = "DELETE FROM users WHERE userId = ?";
-                mysql.query(sqlDeleteUser, [userID], function (err, result) {
-                    if (err) {
-                        return res.status(500).json(err.message);
-                    };
-                    if (result.affectedRows == 0) {
-                        return res.status(400).json({ message: "échec suppression" });
+            if (filename !== "defaultProfilePic.jpg") {
+                fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
+                    if (e) {
+                        console.log(e);
                     }
-                    res.status(200).json({ message: "Compte utilisateur supprimé !" });
-                });
-            })
-            .catch(e => res.status(500).json(e));
-    });
+                })
+            }
+            let hashedPassword = result[0].password;
+            bcrypt.compare(password, hashedPassword)
+                .then(valid => {
+                    if (!valid) {
+                        return res.status(401).json({ error: "Mot de passe incorrect !" });
+                    }
+                    sqlDeleteUser = "DELETE FROM users WHERE id = ?";
+                    mysql.query(sqlDeleteUser, [userId], function (err, result) {
+                        if (err) {
+                            return res.status(500).json(err.message);
+                        };
+                        if (result.affectedRows == 0) {
+                            return res.status(400).json({ message: "échec suppression" });
+                        }
+                        res.status(200).json({ message: "Compte utilisateur supprimé !" });
+                    });
+                })
+                .catch(e => res.status(500).json(e));
+        });
+    }
+
+    
 }
