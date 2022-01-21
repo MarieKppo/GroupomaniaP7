@@ -15,21 +15,19 @@ exports.signup = (req, res, next) => {
             const lastName = req.body.lastName;
             const password = hash;
             const pseudo = req.body.pseudo;
-            const profilePic = req.body.profilePic;
+            // const profilePic = req.body.profilePic;
 
             let sqlSignup;
             let values;
 
             sqlSignup = "INSERT INTO users (lastName, firstName, email, password, pseudo, profilePic) VALUES (?, ?, ?, ?, ?, ?)";
-            values = [lastName, firstName, email, password, pseudo, profilePic]; // nécessité d'un tableau pour que mysql query boucle sur les données
+            values = [lastName, firstName, email, password, pseudo]; // nécessité d'un tableau pour que mysql query boucle sur les données
 
             mysql.query(sqlSignup, values, function (err, result) {
                 if (err) {
                     return res.status(500).json(err.message);
                 };
-                res.status(201).json({
-                    message: "Compte créé !"
-                });
+                res.status(201).json({message: "Compte créé !"});
             });
 
         })
@@ -43,7 +41,7 @@ exports.login = (req, res, next) => {
     const password = req.body.password;
     // console.log(res);
 
-    const sqlFindUser = "SELECT id, password FROM users WHERE email = ?";
+    const sqlFindUser = "SELECT * FROM users WHERE email = ?";
 
     mysql.query(sqlFindUser, email, function (err, result) {
         // console.log(result);
@@ -51,10 +49,8 @@ exports.login = (req, res, next) => {
             return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
         };
         if (result.length == 0) {
-            return res.status(401).json({
-                error: "Compte utilisateur non trouvé !"
-            });
-        }
+            return res.status(401).json({error: "Compte utilisateur non trouvé !"});
+        };
         bcrypt.compare(password, result[0].password)
             .then(valid => {
                 if (!valid) {
@@ -63,18 +59,18 @@ exports.login = (req, res, next) => {
                     }); //ou identifiant
                 }
                 res.status(200).json({
-                    token: jwt.sign({
-                            userId: result[0].id
-                        },
-                        env.token, {
-                            expiresIn: "24h"
-                        }
-                    )
-                });
-            })
+                    pseudo: result[0].pseudo,
+                    firstName : result[0].firstName,
+                    lastName : result[0].lastName,
+                    userId: result[0].id,
+                    profilePic: result[0].profilePic,
+                    isAdmin: result[0].isAdmin,
+                    token: jwt.sign({userId: result[0].id}, env.token, {expiresIn: "24h"})
+                })
+            })            
             .catch(e => res.status(500).json(e));
     });
-}
+};
 
 // fonction pour afficher le profil
 exports.getOneUser = (req, res, next) => {
@@ -106,9 +102,8 @@ exports.modifyUserPic = (req, res, next) => {
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
 
-    // let sqlFindUser;
-    // let sqlModifyPic;
-    // let values; // attention tableau de valeurs pour permettre à mysql de boucler sur chaque champ !
+    let sqlFindUser;
+    let sqlModifyPic;
 
     if (userId != userIdProfilePic) {
         return res.status(403).json({
@@ -116,7 +111,7 @@ exports.modifyUserPic = (req, res, next) => {
         });
     } else {
         // if (req.file) {
-            // const profilePic = req.body.profilePic; //`${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+            const profilePic = req.body.profilePic;//`${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
             // console.log('profile pic : ' + profilePic); //undefined
             
             sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
@@ -126,12 +121,11 @@ exports.modifyUserPic = (req, res, next) => {
                 }
 
                 const filename = result[0].profilePic;//.split("/images/")[1]; // nom de l'image stockée dans la bdd
-                console.log('filename : '+ filename)
 
-                sqlModifyUser = `UPDATE users SET profilePic = ? WHERE id = ?`;
+                sqlModifyPic = `UPDATE users SET profilePic = ? WHERE id = ?`;
                 if (filename !== "defaultProfilePic.jpg") {
                     fs.unlink(`images/${filename}`, () => { //suppression du fichier si diff de photo par défaut 
-                        mysql.query(sqlModifyUser, [profilePic, userId], function (err, result) { //ajout nouvelle photo
+                        mysql.query(sqlModifyPic, [profilePic, userId], function (err, result) { //ajout nouvelle photo
                             if (err) {
                                 return res.status(500).json(err.message);
                             };
@@ -141,14 +135,12 @@ exports.modifyUserPic = (req, res, next) => {
                         });
                     })
                 } else { //ajout de la nouvelle photo à la place de celle par défaut
-                    let profilePic = req.profilePic;
+                    let profilePic = req.body.profilePic;
                     mysql.query(sqlModifyUser, [profilePic, userId], function (err, result) {
                         if (err) {
                             return res.status(500).json(err.message);
                         };
-                        return res.status(200).json({
-                            message: "Photo de profil modifiée ! Dommage le chaton était tout mims"
-                        })
+                        return res.status(200).json({message: "Photo de profil modifiée ! Dommage le chaton était tout mims"});
                     });
                 }
             });
