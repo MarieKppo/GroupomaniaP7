@@ -58,6 +58,11 @@ exports.login = (req, res, next) => {
                         error: "Mot de passe incorrect !"
                     }); //ou identifiant
                 }
+                let usAd = {
+                    'userId': result[0].id,
+                    'isAdmin': !!result[0].isAdmin // transforme le tinyint(1) en true ou false
+                };
+                console.log(usAd)
                 res.status(200).json({
                     pseudo: result[0].pseudo,
                     firstName : result[0].firstName,
@@ -65,7 +70,7 @@ exports.login = (req, res, next) => {
                     userId: result[0].id,
                     profilePic: result[0].profilePic,
                     isAdmin: result[0].isAdmin,
-                    token: jwt.sign({userId: result[0].id}, env.token, {expiresIn: "24h"})
+                    token: jwt.sign(usAd, env.token, {expiresIn: "24h"})
                 })
             })            
             .catch(e => res.status(500).json(e));
@@ -94,62 +99,114 @@ exports.getOneUser = (req, res, next) => {
     });
 }
 
-// fonction de modif du profil
-exports.modifyUserPic = (req, res, next) => {
-    console.log('modifier user profile picture');
-    const userIdProfilePic = req.params.id; //id de l'url/route
+// fonction de modif du profil à décommenter 
+// exports.modifyUserPic = (req, res, next) => {
+//     console.log('modifier user profile picture');
+//     const userIdProfilePic = req.params.id; //id de l'url/route
+//     const token = req.headers.authorization.split(" ")[1];
+//     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+//     const userId = decodedToken.userId;
+    //  const isAdmin = decodedToken.isAdmin;
+
+//     let sqlFindUser;
+//     let sqlModifyPic;
+
+//     if (userId != userIdProfilePic || !isAdmin) {
+//         return res.status(403).json({
+//             message: "Vous ne pouvez pas modifier la photo d'un profil qui n'est pas le vôtre."
+//         });
+//     } else {
+//         // if (req.file) {
+//             const profilePic = req.body.profilePic;//`${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+//             // console.log('profile pic : ' + profilePic); //undefined
+            
+//             sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
+//             mysql.query(sqlFindUser, [userId], function (err, result) {
+//                 if (err) {
+//                     return res.status(500).json({message : "changement impossible !"});
+//                 }
+
+//                 const filename = result[0].profilePic;//.split("/images/")[1]; // nom de l'image stockée dans la bdd
+
+//                 sqlModifyPic = `UPDATE users SET profilePic = ? WHERE id = ?`;
+//                 if (filename !== "defaultProfilePic.jpg") {
+//                     fs.unlink(`images/${filename}`, () => { //suppression du fichier si diff de photo par défaut 
+//                         mysql.query(sqlModifyPic, [profilePic, userId], function (err, result) { //ajout nouvelle photo
+//                             if (err) {
+//                                 return res.status(500).json(err.message);
+//                             };
+//                             return res.status(200).json({
+//                                 message: "Photo de profil modifiée !"
+//                             });
+//                         });
+//                     })
+//                 } else { //ajout de la nouvelle photo à la place de celle par défaut
+//                     let profilePic = req.body.profilePic;
+//                     mysql.query(sqlModifyUser, [profilePic, userId], function (err, result) {
+//                         if (err) {
+//                             return res.status(500).json(err.message);
+//                         };
+//                         return res.status(200).json({message: "Photo de profil modifiée ! Dommage le chaton était tout mims"});
+//                     });
+//                 }
+//             });
+//         // }
+//     }
+
+// } // fin fonction modification
+
+exports.modifyUserPseudo = (req, res, next) => {
+    console.log('modifier user pseudo');
+    const userIdPseudo = req.params.id; //id de l'url/route
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
+    isAdmin = decodedToken.isAdmin;
+    console.log('isAdmin : ' + isAdmin + "!isAdmin : " + !isAdmin + " userId : " + userId)
 
     let sqlFindUser;
-    let sqlModifyPic;
+    let sqlModifyPseudo;
 
-    if (userId != userIdProfilePic) {
+    if ((userId != userIdPseudo) && (!isAdmin)) {
         return res.status(403).json({
-            message: "Vous ne pouvez pas modifier la photo d'un profil qui n'est pas le vôtre."
+            message: "Vous ne pouvez pas modifier le pseudo d'un profil qui n'est pas le vôtre."
         });
     } else {
-        // if (req.file) {
-            const profilePic = req.body.profilePic;//`${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-            // console.log('profile pic : ' + profilePic); //undefined
-            
-            sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
-            mysql.query(sqlFindUser, [userId], function (err, result) {
-                if (err) {
-                    return res.status(500).json({message : "changement impossible !"});
-                }
+        console.log('code pour changer le pseudo')
+        const password = req.body.password;
+        const newPseudo = req.body.pseudo;
 
-                const filename = result[0].profilePic;//.split("/images/")[1]; // nom de l'image stockée dans la bdd
+        const sqlFindUser = "SELECT password FROM users WHERE id = ?";
 
-                sqlModifyPic = `UPDATE users SET profilePic = ? WHERE id = ?`;
-                if (filename !== "defaultProfilePic.jpg") {
-                    fs.unlink(`images/${filename}`, () => { //suppression du fichier si diff de photo par défaut 
-                        mysql.query(sqlModifyPic, [profilePic, userId], function (err, result) { //ajout nouvelle photo
-                            if (err) {
-                                return res.status(500).json(err.message);
-                            };
-                            return res.status(200).json({
-                                message: "Photo de profil modifiée !"
-                            });
-                        });
-                    })
-                } else { //ajout de la nouvelle photo à la place de celle par défaut
-                    let profilePic = req.body.profilePic;
-                    mysql.query(sqlModifyUser, [profilePic, userId], function (err, result) {
+        mysql.query(sqlFindUser, [userId], function (err, result) {
+            // console.log("result");
+            // console.log(result);
+            if (err) {
+                return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
+            };
+            if (result.length == 0) {
+                return res.status(401).json({error: "Compte utilisateur non trouvé !"});
+            };
+            bcrypt.compare(password, result[0].password)
+                .then(valid => {
+                    if (!valid) {
+                        return res.status(401).json({error: "Mot de passe incorrect !"}); //ou identifiant
+                    }
+                    sqlModifyPseudo = `UPDATE users SET pseudo = ? WHERE id = ?`;
+                    mysql.query(sqlModifyPseudo, [newPseudo, userIdPseudo], function(err, result){
                         if (err) {
                             return res.status(500).json(err.message);
                         };
-                        return res.status(200).json({message: "Photo de profil modifiée ! Dommage le chaton était tout mims"});
-                    });
-                }
-            });
-        // }
+                        return res.status(201).json({message : "Pseudo modifié ! "});
+                    })
+                })            
+                .catch(e => res.status(500).json(e));
+        });
+
+
+
     }
-
-} // fin fonction modification
-
-// exports.modifyUserPseudo = (req, res, next) => {}
+}
 
 // exports.modifyUserPassword = (req, res, next) => {
 //     console.log("modifcation du mdp")
