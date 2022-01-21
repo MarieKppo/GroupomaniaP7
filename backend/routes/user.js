@@ -13,9 +13,9 @@ router.post('/signup', userCtrl.signup); //inscription
 router.post('/login', userCtrl.login); //connexion
 router.get('/profile/:id', auth, userCtrl.getOneUser);//afficher 1 user 
 router.delete('/profile/:id', auth, userCtrl.deleteOneUser);//supprimer le profil user
-// router.put('/profile/:id', auth, userCtrl.modifyUserPic); //modifier un user
-router.put('/profile/:id', auth, userCtrl.modifyUserPseudo); //modifier un user
-// router.put('/profile/:id', auth, userCtrl.modifyUserPassword); //modifier un user
+router.put('/pseudo/:id', auth, userCtrl.modifyUserPseudo); //modifier un user
+router.put('/profilePic/:id', auth, userCtrl.modifyUserPic); //modifier un user
+router.put('/password/:id', auth, userCtrl.modifyUserPassword); //modifier un user
 
 
 module.exports = router;

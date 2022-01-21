@@ -27,7 +27,9 @@ exports.signup = (req, res, next) => {
                 if (err) {
                     return res.status(500).json(err.message);
                 };
-                res.status(201).json({message: "Compte créé !"});
+                res.status(201).json({
+                    message: "Compte créé !"
+                });
             });
 
         })
@@ -49,7 +51,9 @@ exports.login = (req, res, next) => {
             return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
         };
         if (result.length == 0) {
-            return res.status(401).json({error: "Compte utilisateur non trouvé !"});
+            return res.status(401).json({
+                error: "Compte utilisateur non trouvé !"
+            });
         };
         bcrypt.compare(password, result[0].password)
             .then(valid => {
@@ -65,14 +69,16 @@ exports.login = (req, res, next) => {
                 console.log(usAd)
                 res.status(200).json({
                     pseudo: result[0].pseudo,
-                    firstName : result[0].firstName,
-                    lastName : result[0].lastName,
+                    firstName: result[0].firstName,
+                    lastName: result[0].lastName,
                     userId: result[0].id,
                     profilePic: result[0].profilePic,
                     isAdmin: result[0].isAdmin,
-                    token: jwt.sign(usAd, env.token, {expiresIn: "24h"})
+                    token: jwt.sign(usAd, env.token, {
+                        expiresIn: "24h"
+                    })
                 })
-            })            
+            })
             .catch(e => res.status(500).json(e));
     });
 };
@@ -100,69 +106,73 @@ exports.getOneUser = (req, res, next) => {
 }
 
 // fonction de modif du profil à décommenter 
-// exports.modifyUserPic = (req, res, next) => {
-//     console.log('modifier user profile picture');
-//     const userIdProfilePic = req.params.id; //id de l'url/route
-//     const token = req.headers.authorization.split(" ")[1];
-//     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-//     const userId = decodedToken.userId;
-    //  const isAdmin = decodedToken.isAdmin;
+exports.modifyUserPic = (req, res, next) => {
+    console.log('modifier user profile picture');
+    const userIdProfilePic = req.params.id; //id de l'url/route
+    const token = req.headers.authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+    const isAdmin = decodedToken.isAdmin;
 
-//     let sqlFindUser;
-//     let sqlModifyPic;
+    let sqlFindUser;
+    let sqlModifyPic;
 
-//     if (userId != userIdProfilePic || !isAdmin) {
-//         return res.status(403).json({
-//             message: "Vous ne pouvez pas modifier la photo d'un profil qui n'est pas le vôtre."
-//         });
-//     } else {
-//         // if (req.file) {
-//             const profilePic = req.body.profilePic;//`${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-//             // console.log('profile pic : ' + profilePic); //undefined
-            
-//             sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
-//             mysql.query(sqlFindUser, [userId], function (err, result) {
-//                 if (err) {
-//                     return res.status(500).json({message : "changement impossible !"});
-//                 }
+    if ((userId != userIdProfilePic) && !isAdmin) {
+        return res.status(403).json({
+            message: "Vous ne pouvez pas modifier la photo d'un profil qui n'est pas le vôtre."
+        });
+    } else {
+        // if (req.file) {
+        const profilePic = req.body.profilePic; //`${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+        // console.log('profile pic : ' + profilePic); //undefined
 
-//                 const filename = result[0].profilePic;//.split("/images/")[1]; // nom de l'image stockée dans la bdd
+        sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
+        mysql.query(sqlFindUser, [userId], function (err, result) {
+            if (err) {
+                return res.status(500).json({
+                    message: "changement impossible !"
+                });
+            }
 
-//                 sqlModifyPic = `UPDATE users SET profilePic = ? WHERE id = ?`;
-//                 if (filename !== "defaultProfilePic.jpg") {
-//                     fs.unlink(`images/${filename}`, () => { //suppression du fichier si diff de photo par défaut 
-//                         mysql.query(sqlModifyPic, [profilePic, userId], function (err, result) { //ajout nouvelle photo
-//                             if (err) {
-//                                 return res.status(500).json(err.message);
-//                             };
-//                             return res.status(200).json({
-//                                 message: "Photo de profil modifiée !"
-//                             });
-//                         });
-//                     })
-//                 } else { //ajout de la nouvelle photo à la place de celle par défaut
-//                     let profilePic = req.body.profilePic;
-//                     mysql.query(sqlModifyUser, [profilePic, userId], function (err, result) {
-//                         if (err) {
-//                             return res.status(500).json(err.message);
-//                         };
-//                         return res.status(200).json({message: "Photo de profil modifiée ! Dommage le chaton était tout mims"});
-//                     });
-//                 }
-//             });
-//         // }
-//     }
+            const filename = result[0].profilePic; //.split("/images/")[1]; // nom de l'image stockée dans la bdd
 
-// } // fin fonction modification
+            sqlModifyPic = `UPDATE users SET profilePic = ? WHERE id = ?`;
+            if (filename !== "defaultProfilePic.jpg") {
+                fs.unlink(`images/${filename}`, () => { //suppression du fichier si diff de photo par défaut 
+                    mysql.query(sqlModifyPic, [profilePic, userIdProfilePic], function (err, result) { //ajout nouvelle photo
+                        if (err) {
+                            return res.status(500).json(err.message);
+                        };
+                        return res.status(200).json({
+                            message: "Photo de profil modifiée !"
+                        });
+                    });
+                })
+            } else { //ajout de la nouvelle photo à la place de celle par défaut
+                let profilePic = req.body.profilePic;
+                mysql.query(sqlModifyPic, [profilePic, userIdProfilePic], function (err, result) {
+                    if (err) {
+                        return res.status(500).json(err.message);
+                    };
+                    return res.status(200).json({
+                        message: "Photo de profil modifiée ! Dommage le chaton était tout mims"
+                    });
+                });
+            }
+        });
+        // }
+    }
+} // fin fonction modification
 
+// fonction pour modifier le pseudo d'un user 
 exports.modifyUserPseudo = (req, res, next) => {
     console.log('modifier user pseudo');
     const userIdPseudo = req.params.id; //id de l'url/route
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
-    isAdmin = decodedToken.isAdmin;
-    console.log('isAdmin : ' + isAdmin + "!isAdmin : " + !isAdmin + " userId : " + userId)
+    const isAdmin = decodedToken.isAdmin;
+    console.log('isAdmin : ' + isAdmin + " !isAdmin : " + !isAdmin + " userId : " + userId)
 
     let sqlFindUser;
     let sqlModifyPseudo;
@@ -172,7 +182,7 @@ exports.modifyUserPseudo = (req, res, next) => {
             message: "Vous ne pouvez pas modifier le pseudo d'un profil qui n'est pas le vôtre."
         });
     } else {
-        console.log('code pour changer le pseudo')
+        // console.log('code pour changer le pseudo')
         const password = req.body.password;
         const newPseudo = req.body.pseudo;
 
@@ -185,21 +195,27 @@ exports.modifyUserPseudo = (req, res, next) => {
                 return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
             };
             if (result.length == 0) {
-                return res.status(401).json({error: "Compte utilisateur non trouvé !"});
+                return res.status(401).json({
+                    error: "Compte utilisateur non trouvé !"
+                });
             };
             bcrypt.compare(password, result[0].password)
                 .then(valid => {
                     if (!valid) {
-                        return res.status(401).json({error: "Mot de passe incorrect !"}); //ou identifiant
+                        return res.status(401).json({
+                            error: "Mot de passe incorrect !"
+                        }); //ou identifiant
                     }
                     sqlModifyPseudo = `UPDATE users SET pseudo = ? WHERE id = ?`;
-                    mysql.query(sqlModifyPseudo, [newPseudo, userIdPseudo], function(err, result){
+                    mysql.query(sqlModifyPseudo, [newPseudo, userIdPseudo], function (err, result) {
                         if (err) {
                             return res.status(500).json(err.message);
                         };
-                        return res.status(201).json({message : "Pseudo modifié ! "});
+                        return res.status(201).json({
+                            message: "Pseudo modifié ! "
+                        });
                     })
-                })            
+                })
                 .catch(e => res.status(500).json(e));
         });
 
@@ -208,54 +224,66 @@ exports.modifyUserPseudo = (req, res, next) => {
     }
 }
 
-// exports.modifyUserPassword = (req, res, next) => {
-//     console.log("modifcation du mdp")
-//     // sqlFindUser = `SELECT password FROM users WHERE userId=?`;
-//     // let sqlChangePassword;
+// modifier le mot de passe d'un utilisateur
+exports.modifyUserPassword = (req, res, next) => {
+    console.log("modifcation du mdp")
+    const userIdPassword = req.params.id; //id de l'url/route
+    const newPassword = req.body.newPassword;
+    const password = req.body.password;
+    const token = req.headers.authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+    const isAdmin = decodedToken.isAdmin;
+    console.log('isAdmin : ' + isAdmin + " !isAdmin : " + !isAdmin + " userId : " + userId)
 
-//     // mysql.query(sqlFindUser, [userId], function (err, result) {
-//     //     if (err) {
-//     //         return res.status(500).json(err.message);
-//     //     }
-//     //     if (result.length == 0) {
-//     //         return res.status(401).json({
-//     //             error: "Mauvais identifiant."
-//     //         });
-//     //     }
+    let sqlFindUser;
+    let sqlModifyPassword;
 
-//     //     const newPassword = req.body.newPassword;
-//     //     const hashedPassword = result[0].password;
-//     //     bcrypt.compare(password, hashedPassword)
-//     //         .then(valid => {
-//     //             if (!valid) {
-//     //                 return res.status(401).json({
-//     //                     error: "Mot de passe incorrect !"
-//     //                 });
-//     //             }
-//     //             if (newPassword) { // si un nouvo mdp est donné
-//     //                 bcrypt.hash(newPassword, 10)
-//     //                     .then(hash => {
-//     //                         sqlChangePassword = `UPDATE users SET password=? WHERE id=?`;
-//     //                         values = [hash, userId];
-//     //                         mysql.query(sqlChangePassword, values, function (err, result) {
-//     //                             if (err) {
-//     //                                 return res.status(500).json(err.message);
-//     //                             }
-//     //                             if (result.affectedRows == 0) {
-//     //                                 return res.status(400).json({
-//     //                                     message: "Echec du chgmt du mdp"
-//     //                                 });
-//     //                             }
-//     //                             return res.status(200).json({
-//     //                                 message: "changement réussi, bravo !"
-//     //                             });
-//     //                         });
-//     //                     })
-//     //             }
-//     //         })
-//     //         .catch(e => res.status(500).json(e));
-//     // });
-// }
+    if ((userId != userIdPassword) && (!isAdmin)) {
+        return res.status(403).json({
+            message: "Vous ne pouvez pas modifier le pseudo d'un profil qui n'est pas le vôtre."
+        });
+    } else {
+        sqlFindUser = `SELECT password FROM users WHERE id = ?`;
+
+        mysql.query(sqlFindUser, [userIdPassword], function (err, result) {
+            if (err) {
+                return res.status(500).json(err.message);
+            }
+            if (result.length == 0) {
+                return res.status(401).json({
+                    error: "Mauvais identifiant."
+                });
+            }
+            const hashedPassword = result[0].password;
+            bcrypt.compare(password, hashedPassword)
+                .then(valid => {
+                    if (!valid) {
+                        return res.status(401).json({
+                            error: "Mot de passe incorrect !"
+                        });
+                    }
+                    if (newPassword) { // si un nouvo mdp donné et mdp original est ok/vérif
+                        bcrypt.hash(newPassword, 10)
+                            .then(hash => {
+                                sqlChangePassword = `UPDATE users SET password= ? WHERE id = ?`;
+                                mysql.query(sqlChangePassword, [hash, userIdPassword], function (err, result) {
+                                    if (err) {
+                                        return res.status(500).json(err.message);
+                                    }
+                                    if (result.affectedRows == 0) {
+                                        return res.status(400).json({message: "Echec du changement de mot de passe"});
+                                    }
+                                    return res.status(200).json({message: "Mot de passe modifié avec succès !"});
+                                });
+                            })
+                            .catch(e => res.status(500).json(e));
+                    }
+                })
+                .catch(e => res.status(500).json(e));
+        });
+    }
+}
 
 // fonction pour supprimer son compte
 exports.deleteOneUser = (req, res, next) => {
