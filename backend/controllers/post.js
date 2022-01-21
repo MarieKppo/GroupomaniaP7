@@ -105,7 +105,7 @@ exports.deleteOnePost = (req, res, next) => {
     });
 }
 
-// fonction pour commenter
+// fonction pour partager
 exports.sharePost = (req, res, next) => {
     const postId = req.params.id;
     const userId = res.locals.userId;
@@ -123,3 +123,5 @@ exports.sharePost = (req, res, next) => {
         res.status(201).json({ message: "Publication partagée!" });
     });
 }
+
+//fonction pour commenter
