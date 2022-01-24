@@ -293,15 +293,15 @@ exports.deleteOneUser = (req, res, next) => {
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
 
-    console.log("user to delete : " + userIdToDelete)
-    console.log("userId : " + userId)
+    // console.log("user to delete : " + userIdToDelete)
+    // console.log("userId : " + userId)
 
     if (userIdToDelete != userId) {
         return res.status(403).json({
             message: "Vous n'avez pas les droits nécessaires à la suppression de ce profil."
         });
     } else {
-        console.log("dans le else")
+        // console.log("dans le else")
         let sqlDeleteUser;
 
         let sqlFindUser = "SELECT password, profilePic FROM users WHERE id = ?"; //recup user dans bdd
