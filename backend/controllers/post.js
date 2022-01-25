@@ -132,51 +132,53 @@ exports.createPost = (req, res, next) => {
 
 }
 
-// suppression d'une publi
-exports.deleteOnePost = (req, res, next) => {
-    console.log('supprimer une publication');
+// suppression d'une publi ==> OK (ajouter suppression des partages de cette publi)
+exports.deleteOnePost = (req, res, next) => { 
+    // console.log('supprimer une publication');
     const postId = req.params.id;
-    console.log('postId : '+ postId);
+    // console.log('postId : '+ postId);
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
     const isAdmin = decodedToken.isAdmin;
-    console.log("userId : " + userId);
-    console.log("isAdmin : " + isAdmin);
+    // console.log("userId : " + userId);
+    // console.log("isAdmin : " + isAdmin);
 
     let sqlDeletePost;
     let sqlSelectPost;
 
-    sqlSelectPost = "SELECT * FROM posts WHERE postId = ?";
+    sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
     mysql.query(sqlSelectPost, [postId], function (err, result) {
-        console.log(result)
-        // if (userId === posts.id_user || isAdmin) {
-        //     if (result > 0) {
-        //         const filename = result[0].visualContent; //.split("/images/")[1];
-        //         fs.unlink(`images/${filename}`, () => { // On supprime le fichier image en amont
-        //             sqlDeletePost = "DELETE FROM posts WHERE userId = ? AND postId = ?";
-        //             mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
-        //                 if (err) {
-        //                     return res.status(500).json(err.message);
-        //                 };
-        //                 res.status(200).json({ message: "Publication effacée !" });
-        //             });
-        //         })
-        //     } else {
-        //         sqlDeletePost = "DELETE FROM posts WHERE userId = ? AND postId = ?";
-        //         mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
-        //             if (err) {
-        //                 return res.status(500).json(err.message);
-        //             };
-        //             res.status(200).json({ message: "Publication supprimée !" });
-        //         });
-        //     }
-        //     if (err) {
-        //         return res.status(500).json(err.message);
-        //     };
-        // } else {
-        //     return res.status(403).json({message : "vous ne pouvez pas supprimer un post dont vous n'êtes pas l'auteur"});
-        // }
+        // console.log("mysql select post avec id : " + postId)
+        // console.log(result[0])
+        if (userId === result[0].id_user || isAdmin) {
+            console.log("l'utilisateur peut supprimer ce post")
+            if (err) {
+                return res.status(500).json(err.message);
+            };     
+            if (result > 0) {
+                const filename = result[0].visualContent; //.split("/images/")[1];
+                fs.unlink(`images/${filename}`, () => { // On supprime le fichier image en amont
+                    sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
+                    mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
+                        if (err) {
+                            return res.status(500).json(err.message);
+                        };
+                        res.status(200).json({ message: "Publication effacée !" });
+                    });
+                })
+            } else {
+                sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
+                mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
+                    if (err) {
+                        return res.status(500).json(err.message);
+                    };
+                    res.status(200).json({ message: "Publication supprimée !" });
+                });
+            }
+        } else {
+            return res.status(403).json({message : "vous ne pouvez pas supprimer un post dont vous n'êtes pas l'auteur"});
+        }
 
     });
 }
@@ -184,13 +186,16 @@ exports.deleteOnePost = (req, res, next) => {
 // fonction pour partager
 exports.sharePost = (req, res, next) => {
     const postId = req.params.id;
-    const userId = res.locals.userId;
+    const token = req.headers.authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+    const isAdmin = decodedToken.isAdmin;
     const body = req.body.body;
 
     let sqlSharePost;
     let values;
 
-    sqlSharePost = "INSERT INTO comments VALUES (NULL, ?, ?, NOW())";
+    sqlSharePost = "INSERT INTO share VALUES (NULL, ?, ?, NOW())";
     values = [userId, postId];
     mysql.query(sqlSharePost, values, function (err, result) {
         if (err) {
