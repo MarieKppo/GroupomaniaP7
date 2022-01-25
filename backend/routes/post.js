@@ -21,7 +21,7 @@ router.post('/:id/share', auth, postCtrl.sharePost);//partager une publi
 //routes pour les commentaires
 router.post("/:id/comment", auth, postCtrl.createComment); //poster un commentaire
 // router.post("/:id/reaction", auth, postCtrl.reactPost); //poster une réaction
-router.get("/:id/comments", auth, postCtrl.getAllComments); // afficher ts les comms d'une publi
-router.delete("/:id/comment", auth, postCtrl.deleteOneComment);//suppri un comm
+// router.get("/:id/comments", auth, postCtrl.getAllComments); // afficher ts les comms d'une publi
+router.delete("/comment/:id", auth, postCtrl.deleteOneComment);//suppri un comm
 
 module.exports = router;

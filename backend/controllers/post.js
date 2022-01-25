@@ -19,6 +19,13 @@ exports.getAllPosts = (req, res, next) => {
     posts.date AS 'date publication'
     FROM posts   
     ORDER BY posts.date LIMIT 15`; 
+    // get all posts join to users name and cie
+    // sqlGetAllPosts = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
+    // users.firstName, users.lastName, users.pseudo, users.profilePic, comments.commentContent, comments.date, comments.id_user, comments.id_post
+    // FROM posts
+    // LEFT JOIN users ON users.id = posts.id_user
+    // left JOIN comments ON comments.id_post=posts.id
+    // ORDER BY posts.date limit 15`;
     mysql.query(sqlGetAllPosts, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -33,9 +40,9 @@ exports.getAllPosts = (req, res, next) => {
 
 // fonction pour afficher les posts d'un user (ajouter partage + vérif si user existe ?) 
 exports.getAllPostsOfUser = (req, res, next) => {
-    console.log('afficher toutes les publications d\'un utilsateur');
+    // console.log('afficher toutes les publications d\'un utilsateur');
     const userId = req.params.id;
-    console.log('userId demandé : '+ userId)
+    // console.log('userId demandé : '+ userId)
 
     let sqlGetAllPosts;
 
@@ -45,6 +52,15 @@ exports.getAllPostsOfUser = (req, res, next) => {
     posts.date AS 'date publication'
     FROM users, posts WHERE users.id = posts.id_user AND users.id = ?
     ORDER BY posts.date LIMIT 20`; 
+    // get all post d'un user + les commentaires s'ils existent 
+    // 'SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
+    // users.firstName, users.lastName, users.pseudo, users.profilePic,
+    // comments.commentContent, comments.date, comments.id_user, comments.id_post
+    // FROM posts
+    // LEFT JOIN users ON users.id = posts.id_user
+    // LEFT JOIN comments ON comments.id_post=posts.id
+    // // #ORDER BY posts.date
+    // WHERE posts.id_user= ?'
     mysql.query(sqlGetAllPosts, [userId], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -133,7 +149,7 @@ exports.createPost = (req, res, next) => {
 
 }
 
-// suppression d'une publi ==> OK (ajouter suppression des partages de cette publi)
+// suppression d'une publi ==> OK (ajouter suppression des commentaires de cette publi)
 exports.deleteOnePost = (req, res, next) => { 
     // console.log('supprimer une publication');
     const postId = req.params.id;
@@ -189,7 +205,7 @@ exports.deleteOnePost = (req, res, next) => {
 //     console.log("affiche tous les partages")
 // }
 
-// fonction pour partager
+// fonction pour partager une publi = ok
 exports.sharePost = (req, res, next) => {
     const postId = req.params.id;
     const token = req.headers.authorization.split(" ")[1];
@@ -215,11 +231,34 @@ exports.sharePost = (req, res, next) => {
 //fonction pour commenter
 exports.createComment = (req, res, next) => {
     console.log('publier un comm')
+    const postId= req.params.id;
+    const commentContent = req.body.commentContent;
+    const token = req.headers.authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+    
+    const commentChecking = commentContent != null || commentContent != undefined || commentContent != "";
+    if (commentChecking){
+        console.log("commentaire impossible si input vide");
+        return res.status(400).json({message : "vous ne pouvez pas parler pour ne rien dire !"})
+    }
+    else {
+        let values = [commentContent, userId, postId]
+        let sqlAddComment = `INSERT INTO comments (commentContent, date, id_user, id_post) 
+        VALUES (?, NOW(), ?, ?)`;
+        mysql.query(sqlAddComment, values, function (err, result) {
+            if (err) {
+                return res.status(500).json(err.message);
+            };
+            res.status(201).json({message: "Commentaire enregistré !" });
+        });
+    }
+//     ;
 }
 
 // fonction pour afficher les comm
 exports.getAllComments = (req, res, next) => {
-    console.log("affiche tous les comm")
+    console.log("affiche tous les comm")  
 }
 
 // delete one comment
