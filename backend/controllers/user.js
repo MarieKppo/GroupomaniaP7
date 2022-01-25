@@ -4,7 +4,7 @@ const env = require('../environnement'); //créer variables d'environnement
 const bcrypt = require('bcrypt'); //hacher le mdp
 const jwt = require('jsonwebtoken'); //token sécu
 const fs = require('fs'); //génère fichier stockés
-const multer = require('multer');
+// const multer = require('multer');
 
 //fonction pour créer un compte //testée ok
 exports.signup = (req, res, next) => {

@@ -56,16 +56,17 @@ exports.getAllPostsOfUser = (req, res, next) => {
         res.status(200).json(result);
     });
 }
+
 // fonction recup une publi //done
 exports.getOnePost = (req, res, next) => {
     const postId = req.params.id;
-    console.log('postId : ' + postId)
+    // console.log('postId : ' + postId)
 
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
     // const isAdmin = decodedToken.isAdmin;
-    console.log('userId : ' + userId)
+    // console.log('userId : ' + userId)
 
 
     let sqlGetPost;
@@ -183,6 +184,11 @@ exports.deleteOnePost = (req, res, next) => {
     });
 }
 
+// fonction pour afficher ttes les publications partagées
+// exports.getAllSharedPosts = (req, res, next)=>{
+//     console.log("affiche tous les partages")
+// }
+
 // fonction pour partager
 exports.sharePost = (req, res, next) => {
     const postId = req.params.id;
@@ -190,19 +196,33 @@ exports.sharePost = (req, res, next) => {
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
     const isAdmin = decodedToken.isAdmin;
-    const body = req.body.body;
+    // const body = req.body.body;
 
     let sqlSharePost;
     let values;
+    let message;
 
-    sqlSharePost = "INSERT INTO share VALUES (NULL, ?, ?, NOW())";
+    sqlSharePost = "INSERT INTO share (id_user, id_post, share_date) VALUES (?, ?, NOW())";
     values = [userId, postId];
     mysql.query(sqlSharePost, values, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         };
-        res.status(201).json({ message: "Publication partagée!" });
+        res.status(201).json({ message: "Publication partagée !" });
     });
 }
 
 //fonction pour commenter
+exports.createComment = (req, res, next) => {
+    console.log('publier un comm')
+}
+
+// fonction pour afficher les comm
+exports.getAllComments = (req, res, next) => {
+    console.log("affiche tous les comm")
+}
+
+// delete one comment
+exports.deleteOneComment = (req, res, next) => {
+    console.log('suppr un comm')
+}
