@@ -118,19 +118,16 @@ exports.modifyUserPic = (req, res, next) => {
     let sqlFindUser;
     let sqlModifyPic;
 
-    console.log("req");
-    console.log(req)
-
-
     if ((userId != userIdAsked) && !isAdmin) {
         return res.status(403).json({
             message: "Vous ne pouvez pas modifier la photo d'un profil qui n'est pas le vôtre."
         });
     } else {
-        // if (req.file) {
-            console.log(req);
+        if (req.file === "" || req.file === undefined || req.file === null) {
+            return res.status(400).json({message : "Vous devez sélectionner une image pour la télécharger sur votre profil"})
+        }
+        if (req.file) {
             const profilePic = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-            console.log('profile pic : ' + profilePic); //undefined
             sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
             mysql.query(sqlFindUser, [userId], function (err, result) {
                 if (err) {
@@ -162,7 +159,7 @@ exports.modifyUserPic = (req, res, next) => {
         }
             });
         }
-    // }
+    }
 } // fin fonction modification
 
 // fonction pour modifier le pseudo d'un user 
