@@ -33,6 +33,12 @@ app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
-  
+
+//verification champ d'erreur / multer
+app.use((error, req, res, next)=> {
+  const message = `this is the unexpected field -> "${error.field}`;
+  console.log(message);
+  return res.status(500).send(message);
+})
 //export app à la fin du fichier
 module.exports = app;
