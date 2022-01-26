@@ -3,18 +3,11 @@ const mysql = require('../Database').connection;
 const bcrypt = require('bcrypt'); //hacher le mdp
 const jwt = require('jsonwebtoken'); //token sécu
 const fs = require("fs"); // Permet de gérer les fichiers stockés
+const Utils = require("../utils/utils"); //importe la fonction pour décoder le token
 
 // fonction pour afficher tous les posts //ajouter les partages ! + ajouter conditions que l'user ait un compte ?
 exports.getAllPosts = (req, res, next) => {
-    // const token = req.headers.authorization.split(" ")[1];
-    // const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    // const userId = decodedToken.userId;
-    // // const isAdmin = decodedToken.isAdmin;
-    // console.log('userId : ' + userId)
-
-    let sqlGetAllPosts;
-
-    sqlGetAllPosts = `SELECT posts.id AS 'postId',
+    let sqlGetAllPosts = `SELECT posts.id AS 'postId',
     posts.content AS 'contenu publication', 
     posts.date AS 'date publication'
     FROM posts   
@@ -40,13 +33,9 @@ exports.getAllPosts = (req, res, next) => {
 
 // fonction pour afficher les posts d'un user (ajouter partage + vérif si user existe ?) 
 exports.getAllPostsOfUser = (req, res, next) => {
-    // console.log('afficher toutes les publications d\'un utilsateur');
     const userId = req.params.id;
-    // console.log('userId demandé : '+ userId)
 
-    let sqlGetAllPosts;
-
-    sqlGetAllPosts = `SELECT posts.id AS 'post id',
+    let sqlGetAllPosts = `SELECT posts.id AS 'post id',
     users.id AS 'userId',
     posts.content AS 'contenu publication', 
     posts.date AS 'date publication'
@@ -76,18 +65,8 @@ exports.getAllPostsOfUser = (req, res, next) => {
 // fonction recup une publi //done
 exports.getOnePost = (req, res, next) => {
     const postId = req.params.id;
-    // console.log('postId : ' + postId)
 
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    // const isAdmin = decodedToken.isAdmin;
-    // console.log('userId : ' + userId)
-
-
-    let sqlGetPost;
-
-    sqlGetPost = `SELECT * FROM posts WHERE posts.id = ?`;
+    let sqlGetPost = `SELECT * FROM posts WHERE posts.id = ?`;
     mysql.query(sqlGetPost, [postId], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -102,16 +81,13 @@ exports.getOnePost = (req, res, next) => {
 
 // créer une publi ==> OK
 exports.createPost = (req, res, next) => {
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    // console.log("userId : " + userId)
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
+    console.log(userId)
     
     const textContent = req.body.textContent;
     const visualContent = req.body.filename;// `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-    // console.log("visual : " + visualContent);
-    // console.log("text : " + textContent);
-
+    console.log("text content : "+textContent+ " // visual content : "+visualContent)
     let textContentChecking = textContent === "" || textContent === null || textContent === undefined;
     let visualContentChecking = visualContent === "" || visualContent === null || visualContent === undefined;
     let sqlCreatePost;
@@ -151,20 +127,13 @@ exports.createPost = (req, res, next) => {
 
 // suppression d'une publi ==> OK (ajouter suppression des commentaires de cette publi)
 exports.deleteOnePost = (req, res, next) => { 
-    // console.log('supprimer une publication');
     const postId = req.params.id;
-    // console.log('postId : '+ postId);
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    const isAdmin = decodedToken.isAdmin;
-    // console.log("userId : " + userId);
-    // console.log("isAdmin : " + isAdmin);
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
+    const isAdmin = token.isAdmin;
 
     let sqlDeletePost;
-    let sqlSelectPost;
-
-    sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
+    let sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
     mysql.query(sqlSelectPost, [postId], function (err, result) {
         // console.log("mysql select post avec id : " + postId)
         // console.log(result[0])
@@ -211,18 +180,11 @@ exports.deleteOnePost = (req, res, next) => {
 // fonction pour partager une publi = ok
 exports.sharePost = (req, res, next) => {
     const postId = req.params.id;
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    const isAdmin = decodedToken.isAdmin;
-    // const body = req.body.body;
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
 
-    let sqlSharePost;
-    let values;
-    let message;
-
-    sqlSharePost = "INSERT INTO share (id_user, id_post, share_date) VALUES (?, ?, NOW())";
-    values = [userId, postId];
+    let sqlSharePost = "INSERT INTO share (id_user, id_post, share_date) VALUES (?, ?, NOW())";
+    let values = [userId, postId];
     mysql.query(sqlSharePost, values, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -231,17 +193,18 @@ exports.sharePost = (req, res, next) => {
     });
 }
 
+// logique commentaires
 //fonction pour commenter
 exports.createComment = (req, res, next) => {
-    console.log('publier un comm')
     const postId= req.params.id;
     const commentContent = req.body.commentContent;
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
+
     const commentChecking = (commentContent == null || commentContent == undefined || commentContent == "");
     if (commentChecking){
-        console.log("commentaire impossible si input vide");
+        // console.log("commentaire impossible si champ de texte vide");
         return res.status(400).json({message : "vous ne pouvez pas parler pour ne rien dire !"})
     }
     else {
@@ -260,10 +223,9 @@ exports.createComment = (req, res, next) => {
 // delete one comment
 exports.deleteOneComment = (req, res, next) => {
     const commentId= req.params.id;
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    const isAdmin = decodedToken.isAdmin;
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
+    const isAdmin = token.isAdmin;
 
     let sqlSelectComment = `SELECT * FROM comments WHERE id=?`;
     let sqlDeleteComment = `DELETE FROM comments WHERE id=?`

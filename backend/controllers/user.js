@@ -4,11 +4,11 @@ const env = require('../environnement'); //créer variables d'environnement
 const bcrypt = require('bcrypt'); //hacher le mdp
 const jwt = require('jsonwebtoken'); //token sécu
 const fs = require('fs'); //génère fichier stockés
+const Utils = require('../utils/utils');
 // const multer = require('multer');
 
 //fonction pour créer un compte //testée ok
 exports.signup = (req, res, next) => {
-    // console.log('route pour créer un utilisateur');
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const email = req.body.email;
@@ -16,13 +16,9 @@ exports.signup = (req, res, next) => {
             const lastName = req.body.lastName;
             const password = hash;
             const pseudo = req.body.pseudo;
-            // const profilePic = req.body.profilePic;
 
-            let sqlSignup;
-            let values;
-
-            sqlSignup = "INSERT INTO users (lastName, firstName, email, password, pseudo, profilePic) VALUES (?, ?, ?, ?, ?, ?)";
-            values = [lastName, firstName, email, password, pseudo]; // nécessité d'un tableau pour que mysql query boucle sur les données
+            let sqlSignup = "INSERT INTO users (lastName, firstName, email, password, pseudo) VALUES (?, ?, ?, ?, ?)";
+            let values = [lastName, firstName, email, password, pseudo]; // nécessité d'un tableau pour que mysql query boucle sur les données
 
             mysql.query(sqlSignup, values, function (err, result) {
                 if (err) {
@@ -39,13 +35,10 @@ exports.signup = (req, res, next) => {
 
 // fonction pour se connecter //testée ok
 exports.login = (req, res, next) => {
-    // console.log('se connecter ?');
     const email = req.body.email;
     const password = req.body.password;
-    // console.log(res);
 
     const sqlFindUser = "SELECT * FROM users WHERE email = ?";
-
     mysql.query(sqlFindUser, email, function (err, result) {
         // console.log(result);
         if (err) {
@@ -61,7 +54,7 @@ exports.login = (req, res, next) => {
                 if (!valid) {
                     return res.status(401).json({
                         error: "Mot de passe incorrect !"
-                    }); //ou identifiant
+                    }); 
                 }
                 let usAd = {
                     'userId': result[0].id,
@@ -75,9 +68,7 @@ exports.login = (req, res, next) => {
                     userId: result[0].id,
                     profilePic: result[0].profilePic,
                     isAdmin: result[0].isAdmin,
-                    token: jwt.sign(usAd, env.token, {
-                        expiresIn: "24h"
-                    })
+                    token: jwt.sign(usAd, `${process.env.TOKEN_KEY}`, {expiresIn: "24h" })
                 })
             })
             .catch(e => res.status(500).json(e));
@@ -87,11 +78,7 @@ exports.login = (req, res, next) => {
 // fonction pour afficher le profil
 exports.getOneUser = (req, res, next) => {
     let userId = req.params.id;
-    // console.log('fonction getOneUser ' + userId)
-
-    let sqlGetUser;
-
-    sqlGetUser = `SELECT id AS userId, lastName, firstName, email, pseudo, profilePic
+    const sqlGetUser = `SELECT id AS userId, lastName, firstName, email, pseudo, profilePic
     FROM users WHERE id = ?`;
     mysql.query(sqlGetUser, [userId], function (err, result) {
         if (err) {
@@ -108,17 +95,13 @@ exports.getOneUser = (req, res, next) => {
 
 // fonction de modif du profil à décommenter 
 exports.modifyUserPic = (req, res, next) => {
-    console.log('modifier user profile picture');
     const userIdAsked = req.params.id; //id de l'url/route
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    const isAdmin = decodedToken.isAdmin;
     
-    let sqlFindUser;
-    let sqlModifyPic;
-
-    if ((userId != userIdAsked) && !isAdmin) {
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
+    const isAdmin = token.isAdmin;
+    console.log("userId : "+userId+" userIdAsked : "+userIdAsked)
+    if ((userId != userIdAsked) || !isAdmin) {
         return res.status(403).json({
             message: "Vous ne pouvez pas modifier la photo d'un profil qui n'est pas le vôtre."
         });
@@ -128,7 +111,7 @@ exports.modifyUserPic = (req, res, next) => {
         }
         if (req.file) {
             const profilePic = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-            sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
+            const sqlFindUser = `SELECT profilePic FROM users WHERE id = ?`;
             mysql.query(sqlFindUser, [userId], function (err, result) {
                 if (err) {
                     return res.status(500).json({message: "changement impossible !"});
@@ -136,7 +119,7 @@ exports.modifyUserPic = (req, res, next) => {
 
                 const filename = result[0].profilePic.split("/images/")[1]; // nom de l'image stockée dans la bdd
 
-                sqlModifyPic = `UPDATE users SET profilePic = ? WHERE id = ?`;
+                const sqlModifyPic = `UPDATE users SET profilePic = ? WHERE id = ?`;
                 if (filename !== "defaultProfilePic.jpg") {
                     fs.unlink(`images/${filename}`, () => { //suppression du fichier si diff de photo par défaut 
                         mysql.query(sqlModifyPic, [profilePic, userIdAsked], function (err, result) { //ajout nouvelle photo
@@ -172,8 +155,7 @@ exports.modifyUserPseudo = (req, res, next) => {
     const isAdmin = decodedToken.isAdmin;
     console.log('isAdmin : ' + isAdmin + " !isAdmin : " + !isAdmin + " userId : " + userId)
 
-    let sqlFindUser;
-    let sqlModifyPseudo;
+    // let sqlModifyPseudo;
 
     if ((userId != userIdPseudo) && (!isAdmin)) {
         return res.status(403).json({
@@ -204,7 +186,7 @@ exports.modifyUserPseudo = (req, res, next) => {
                             error: "Mot de passe incorrect !"
                         }); //ou identifiant
                     }
-                    sqlModifyPseudo = `UPDATE users SET pseudo = ? WHERE id = ?`;
+                    const sqlModifyPseudo = `UPDATE users SET pseudo = ? WHERE id = ?`;
                     mysql.query(sqlModifyPseudo, [newPseudo, userIdPseudo], function (err, result) {
                         if (err) {
                             return res.status(500).json(err.message);
