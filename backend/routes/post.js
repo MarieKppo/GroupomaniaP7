@@ -5,13 +5,15 @@ const router = express.Router();
 const postCtrl = require('../controllers/post');
 
 const auth = require('../middlewares/auth');
-const multer = require('../middlewares/multer-config');
+// const multer = require('../middlewares/multer-config');
+const multerPost = require('../middlewares/multer-posts-config');
+
 
 //routes pour les posts
 router.get('/', auth, postCtrl.getAllPosts); //afficher ttes les publi //ok
 router.get('/:id', auth, postCtrl.getOnePost); //afficher une publi // ok
 router.get('/profile/:id/posts', auth, postCtrl.getAllPostsOfUser); //affiche toutes les publi d'un user // ok
-router.post('/', auth, multer, postCtrl.createPost); //écrire une publi //ok
+router.post('/', auth, multerPost, postCtrl.createPost); //écrire une publi //ok
 router.delete('/:id', auth, postCtrl.deleteOnePost); //suppri une publi
 
 //routes pour les partages

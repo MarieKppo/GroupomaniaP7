@@ -1,7 +1,6 @@
 // modules
 const mysql = require('../Database').connection;
 const bcrypt = require('bcrypt'); //hacher le mdp
-const jwt = require('jsonwebtoken'); //token sécu
 const fs = require("fs"); // Permet de gérer les fichiers stockés
 const Utils = require("../utils/utils"); //importe la fonction pour décoder le token
 
@@ -81,51 +80,62 @@ exports.getOnePost = (req, res, next) => {
 
 // créer une publi ==> OK
 exports.createPost = (req, res, next) => {
+    console.log("create post")
     const token = Utils.getReqToken(req);
     const userId = token.userId;
-    console.log(userId)
     
     const textContent = req.body.textContent;
-    const visualContent = req.body.filename;// `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
-    console.log("text content : "+textContent+ " // visual content : "+visualContent)
-    let textContentChecking = textContent === "" || textContent === null || textContent === undefined;
-    let visualContentChecking = visualContent === "" || visualContent === null || visualContent === undefined;
-    let sqlCreatePost;
-    let values;
-    let message;
+    console.log(!!req.file)
+    
+    let textContentChecking = (textContent === "" || textContent === null || textContent === undefined);
+    // let sqlCreatePost;
+    // let values;
+    // let message;
 
-    // si zones de texte et d'image sont vides : publication impossible
-    if (textContentChecking && visualContentChecking) {
-        return res.status(400).json({message: "vous ne pouvez pas envoyer une publication sans texte ou sans visuel"})
+    if(!req.file && textContentChecking) {
+        return res.status(400).json({message: "vous ne pouvez pas envoyer une publication sans texte ou sans visuel"});
+    };
+    if(req.file){
+        const visualContent = `${req.protocol}://${req.get("host")}/fichiers/${req.file.filename}`;
+        console.log("texte : "+ textContent+ " // visuel : "+visualContent);
+
     }
-    // si zone d'image vide : publication texte seulement
-    if (visualContentChecking && !textContentChecking){
-        values = [textContent, userId];
-        sqlCreatePost = "INSERT INTO posts (content, date, id_user) VALUES (?, NOW(), ?)";
-        message = "Publication texte créée !";
-    }
-    // si zone de texte vide : publication d'image seulement
-    if (textContentChecking && !visualContentChecking){
-        values = [visualContent, userId];
-        sqlCreatePost = "INSERT INTO posts (visualContent, date, id_user) VALUES (?, NOW(), ?)";
-        message = "Publication visuel only créée !";
-    }
-    // si zones texte et image complétées (!= vides) : publication texte et image  
-    if (!textContentChecking && !visualContentChecking){
-        values = [textContent, visualContent, userId];
-        sqlCreatePost = "INSERT INTO posts (content, visualContent, date, id_user) VALUES (?, ?, NOW(), ?)";
-        message = "Publication avec visuel et texte créée !" ;
-    }
-    mysql.query(sqlCreatePost, values, function (err, result) {
-        if (err) {
-            return res.status(500).json(err.message);
-        };
-        res.status(201).json({ message });
-    });
+    
+    
+
+    
+    // // si zones de texte et d'image sont vides : publication impossible
+    // if (textContentChecking && !req.file) {
+    //     return res.status(400).json({message: "vous ne pouvez pas envoyer une publication sans texte ou sans visuel"})
+    // }
+    // // si zone d'image vide : publication texte seulement
+    // if (visualContentChecking && !textContentChecking){
+    //     values = [textContent, userId];
+    //     sqlCreatePost = "INSERT INTO posts (content, date, id_user) VALUES (?, NOW(), ?)";
+    //     message = "Publication texte créée !";
+    // }
+    // // si zone de texte vide : publication d'image seulement
+    // if (textContentChecking && !visualContentChecking){
+    //     values = [visualContent, userId];
+    //     sqlCreatePost = "INSERT INTO posts (visualContent, date, id_user) VALUES (?, NOW(), ?)";
+    //     message = "Publication visuel only créée !";
+    // }
+    // // si zones texte et image complétées (!= vides) : publication texte et image  
+    // if (!textContentChecking && !visualContentChecking){
+    //     values = [textContent, visualContent, userId];
+    //     sqlCreatePost = "INSERT INTO posts (content, visualContent, date, id_user) VALUES (?, ?, NOW(), ?)";
+    //     message = "Publication avec visuel et texte créée !" ;
+    // }
+    // mysql.query(sqlCreatePost, values, function (err, result) {
+    //     if (err) {
+    //         return res.status(500).json(err.message);
+    //     };
+    //     res.status(201).json({ message });
+    // });
 
 }
 
-// suppression d'une publi ==> OK (ajouter suppression des commentaires de cette publi)
+// suppression d'une publi ==> traitement suppr image !!
 exports.deleteOnePost = (req, res, next) => { 
     const postId = req.params.id;
     const token = Utils.getReqToken(req);
@@ -145,8 +155,8 @@ exports.deleteOnePost = (req, res, next) => {
             if (err) {
                 return res.status(500).json(err.message);
             };     
-            if (result > 0) {
-                const filename = result[0].visualContent; //.split("/images/")[1];
+            if (result > 0) { //if req.file : suppression image et ensuite mysql.query
+                const filename = result[0].visualContent.split("/images/")[1];
                 fs.unlink(`images/${filename}`, () => { // On supprime le fichier image en amont
                     sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
                     mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
@@ -172,6 +182,7 @@ exports.deleteOnePost = (req, res, next) => {
     });
 }
 
+// PARTAGES
 // fonction pour afficher ttes les publications partagées
 // exports.getAllSharedPosts = (req, res, next)=>{
 //     console.log("affiche tous les partages")
@@ -193,7 +204,7 @@ exports.sharePost = (req, res, next) => {
     });
 }
 
-// logique commentaires
+// COMMENTAIRES
 //fonction pour commenter
 exports.createComment = (req, res, next) => {
     const postId= req.params.id;

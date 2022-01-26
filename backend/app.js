@@ -35,10 +35,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 
 //verification champ d'erreur / multer
-app.use((error, req, res, next)=> {
-  const message = `this is the unexpected field -> "${error.field}`;
-  console.log(message);
-  return res.status(500).send(message);
-})
+// app.use((error, req, res, next)=> {
+//   const message = `this is the unexpected field -> "${error.field}`;
+//   console.log(message);
+//   return res.status(500).send(message);
+// })
 //export app à la fin du fichier
 module.exports = app;

@@ -147,30 +147,21 @@ exports.modifyUserPic = (req, res, next) => {
 
 // fonction pour modifier le pseudo d'un user 
 exports.modifyUserPseudo = (req, res, next) => {
-    console.log('modifier user pseudo');
     const userIdPseudo = req.params.id; //id de l'url/route
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    const isAdmin = decodedToken.isAdmin;
-    console.log('isAdmin : ' + isAdmin + " !isAdmin : " + !isAdmin + " userId : " + userId)
-
-    // let sqlModifyPseudo;
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
+    const isAdmin = token.isAdmin;
 
     if ((userId != userIdPseudo) && (!isAdmin)) {
         return res.status(403).json({
             message: "Vous ne pouvez pas modifier le pseudo d'un profil qui n'est pas le vôtre."
         });
     } else {
-        // console.log('code pour changer le pseudo')
         const password = req.body.password;
         const newPseudo = req.body.pseudo;
 
         const sqlFindUser = "SELECT password FROM users WHERE id = ?";
-
         mysql.query(sqlFindUser, [userId], function (err, result) {
-            // console.log("result");
-            // console.log(result);
             if (err) {
                 return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
             };
@@ -198,9 +189,6 @@ exports.modifyUserPseudo = (req, res, next) => {
                 })
                 .catch(e => res.status(500).json(e));
         });
-
-
-
     }
 }
 
@@ -210,22 +198,16 @@ exports.modifyUserPassword = (req, res, next) => {
     const userIdPassword = req.params.id; //id de l'url/route
     const newPassword = req.body.newPassword;
     const password = req.body.password;
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    const isAdmin = decodedToken.isAdmin;
-    console.log('isAdmin : ' + isAdmin + " !isAdmin : " + !isAdmin + " userId : " + userId)
-
-    let sqlFindUser;
-    let sqlModifyPassword;
+    const token = Utils.getReqToken(req);
+    const userId = token.userId;
+    const isAdmin = token.isAdmin;
 
     if ((userId != userIdPassword) && (!isAdmin)) {
         return res.status(403).json({
             message: "Vous ne pouvez pas modifier le pseudo d'un profil qui n'est pas le vôtre."
         });
     } else {
-        sqlFindUser = `SELECT password FROM users WHERE id = ?`;
-
+        const sqlFindUser = `SELECT password FROM users WHERE id = ?`;
         mysql.query(sqlFindUser, [userIdPassword], function (err, result) {
             if (err) {
                 return res.status(500).json(err.message);
@@ -246,7 +228,7 @@ exports.modifyUserPassword = (req, res, next) => {
                     if (newPassword) { // si un nouvo mdp donné et mdp original est ok/vérif
                         bcrypt.hash(newPassword, 10)
                             .then(hash => {
-                                sqlChangePassword = `UPDATE users SET password= ? WHERE id = ?`;
+                                const sqlChangePassword = `UPDATE users SET password= ? WHERE id = ?`;
                                 mysql.query(sqlChangePassword, [hash, userIdPassword], function (err, result) {
                                     if (err) {
                                         return res.status(500).json(err.message);
