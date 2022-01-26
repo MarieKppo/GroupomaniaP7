@@ -312,7 +312,7 @@ exports.deleteOneUser = (req, res, next) => {
                     error: "Utilisateur non trouvé !"
                 });
             }
-            const filename = result[0].profilePic; //.split("/images/")[1];
+            const filename = result[0].profilePic.split("/images/")[1];
             console.log("filename : " + filename);
 
             if (filename !== "defaultProfilePic.jpg") {

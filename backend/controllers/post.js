@@ -168,6 +168,9 @@ exports.deleteOnePost = (req, res, next) => {
     mysql.query(sqlSelectPost, [postId], function (err, result) {
         // console.log("mysql select post avec id : " + postId)
         // console.log(result[0])
+        if (result.length==0){
+            return res.status(400).json({message:"Pas de publication à cette adresse."});
+        };
         if (userId === result[0].id_user || isAdmin) {
             // console.log("l'utilisateur peut supprimer ce post")
             if (err) {
@@ -236,8 +239,7 @@ exports.createComment = (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
-    
-    const commentChecking = commentContent != null || commentContent != undefined || commentContent != "";
+    const commentChecking = (commentContent == null || commentContent == undefined || commentContent == "");
     if (commentChecking){
         console.log("commentaire impossible si input vide");
         return res.status(400).json({message : "vous ne pouvez pas parler pour ne rien dire !"})
