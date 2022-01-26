@@ -169,7 +169,7 @@ exports.deleteOnePost = (req, res, next) => {
         // console.log("mysql select post avec id : " + postId)
         // console.log(result[0])
         if (userId === result[0].id_user || isAdmin) {
-            console.log("l'utilisateur peut supprimer ce post")
+            // console.log("l'utilisateur peut supprimer ce post")
             if (err) {
                 return res.status(500).json(err.message);
             };     
@@ -253,15 +253,33 @@ exports.createComment = (req, res, next) => {
             res.status(201).json({message: "Commentaire enregistré !" });
         });
     }
-//     ;
-}
-
-// fonction pour afficher les comm
-exports.getAllComments = (req, res, next) => {
-    console.log("affiche tous les comm")  
 }
 
 // delete one comment
 exports.deleteOneComment = (req, res, next) => {
-    console.log('suppr un comm')
+    const commentId= req.params.id;
+    const token = req.headers.authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+    const isAdmin = decodedToken.isAdmin;
+
+    let sqlSelectComment = `SELECT * FROM comments WHERE id=?`;
+    let sqlDeleteComment = `DELETE FROM comments WHERE id=?`
+    mysql.query(sqlSelectComment, [commentId], function (err, result){
+        if(err) {
+            return res.status(500).json(err.message);
+        };
+        if(result.length == 0){
+            return res.status(400).json({message : "Ce commentaire n'existe pas ou plus"});
+        };
+        if((result[0].id_user != userId) || (!!isAdmin)){
+            return res.status(403).json({message:"Vous ne pouvez pas supprimer ce commentaire sans en être l'auteur ou admin !"});
+        };
+        mysql.query(sqlDeleteComment, [commentId], function(err, result){
+            if(err){
+                return res.status(500).json(err.message);
+            };
+            return res.status(200).json({message:"Commentaire supprimé avec succès."})
+        });
+    });
 }
