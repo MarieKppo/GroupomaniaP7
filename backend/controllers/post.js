@@ -11,7 +11,7 @@ exports.getAllPosts = (req, res, next) => {
     FROM posts
     LEFT JOIN users ON users.id = posts.id_user
     left JOIN comments ON comments.id_post=posts.id
-    ORDER BY posts.date`;
+    ORDER BY posts.date LIMIT 20`;
     // `SELECT posts.id AS 'postId',
     // posts.content AS 'contenu publication', 
     // posts.date AS 'date publication'
@@ -40,7 +40,7 @@ exports.getAllPostsOfUser = (req, res, next) => {
     FROM posts
     LEFT JOIN users ON users.id = posts.id_user
     WHERE posts.id_user = ?
-    ORDER BY posts.date`;
+    ORDER BY posts.date LIMIT 20`;
 
     mysql.query(sqlGetAllPosts, [userId], function (err, result) {
         if (err) {
@@ -64,7 +64,7 @@ exports.getOnePost = (req, res, next) => {
     users.firstName, users.lastName, users.pseudo, users.profilePic
     FROM posts
     LEFT JOIN users ON users.id = posts.id_user
-    WHERE posts.id = 28`;
+    WHERE posts.id = ?`;
     // `SELECT * FROM posts WHERE posts.id = ?`;
     mysql.query(sqlGetPost, [postId], function (err, result) {
         if (err) {
@@ -130,7 +130,7 @@ exports.deleteOnePost = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    console.log('userId : '+userId + " isAdmin : "+isAdmin)
+    console.log('userId : ' + userId + " isAdmin : " + isAdmin)
     let sqlDeletePost;
     let sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
     mysql.query(sqlSelectPost, [postId], function (err, result) {
@@ -148,14 +148,13 @@ exports.deleteOnePost = (req, res, next) => {
                 const filename = result[0].visualContent.split("/fichiers/")[1];
                 console.log(filename);
                 fs.unlink(`fichiers/${filename}`, (err => {
-                    if (err){
-                        return res.status(500).json(err.message); 
+                    if (err) {
+                        return res.status(500).json(err.message);
                     };
                     // console.log("fichier suppr");
                     sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?"
                 }));
-            }
-            else {
+            } else {
                 // console.log('pas de fichier ')
                 sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
             }
@@ -252,12 +251,14 @@ exports.getAllComments = (req, res, next) => {
         LEFT JOIN users ON users.id=comments.id_user
         WHERE comments.id_post = ?
         ORDER BY comments.id`;
-        mysql.query(sqlGetComments, [postId], function (err, result){
-            if(err){
+        mysql.query(sqlGetComments, [postId], function (err, result) {
+            if (err) {
                 return res.status(500).json(err.message);
             };
-            if(result == 0 ){
-                return res.status(400).json({message : "Il n'y a pas encore de commentaire sur cette publication !"})
+            if (result == 0) {
+                return res.status(400).json({
+                    message: "Il n'y a pas encore de commentaire sur cette publication !"
+                })
             }
             console.log(result);
             return res.status(200).json(result);

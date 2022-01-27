@@ -1,3 +1,6 @@
 node_modules
-images
-fichiers
+!images/
+images/*
+!images/defaultProfilePic.jpg
+!fichiers/
+fichiers/*
