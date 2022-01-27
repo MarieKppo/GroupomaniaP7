@@ -86,10 +86,8 @@ exports.getOnePost = (req, res, next) => {
 
 // créer une publi ==> OK
 exports.createPost = (req, res, next) => {
-    console.log("create post")
     const token = Utils.getReqToken(req);
     const userId = token.userId;
-
     const textContent = req.body.textContent;
 
     let textContentChecking = (textContent === "" || textContent === null || textContent === undefined);
@@ -103,22 +101,18 @@ exports.createPost = (req, res, next) => {
         });
     };
     if (!req.file && !textContentChecking) { // publication texte only
-        console.log("publication texte : " + textContent)
         values = [textContent, userId];
         sqlCreatePost = "INSERT INTO posts (content, date, id_user) VALUES (?, NOW(), ?)";
         message = "Publication texte créée !";
     }
     if (req.file) { // si visuel test si texte ou non
         const visualContent = `${req.protocol}://${req.get("host")}/fichiers/${req.file.filename}`;
-        console.log("textContentChecking : " + textContentChecking)
         if (textContentChecking) { // pas de texte
-            console.log("pas de texte")
             values = [visualContent, userId];
             sqlCreatePost = "INSERT INTO posts (visualContent, date, id_user) VALUES (?, NOW(), ?)";
             message = "Publication visuel only créée !";
         };
-        if (!textContentChecking) {
-            console.log("texte et visuel") // texte
+        if (!textContentChecking) { // texte et visuel
             values = [textContent, visualContent, userId];
             sqlCreatePost = "INSERT INTO posts (content, visualContent, date, id_user) VALUES (?, ?, NOW(), ?)";
             message = "Publication avec visuel et texte créée !";
@@ -134,58 +128,54 @@ exports.createPost = (req, res, next) => {
     });
 }
 
-// suppression d'une publi ==> traitement suppr image !!
+// suppression d'une publi ==> ok
 exports.deleteOnePost = (req, res, next) => {
     const postId = req.params.id;
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-
+    console.log('userId : '+userId + " isAdmin : "+isAdmin)
     let sqlDeletePost;
     let sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
     mysql.query(sqlSelectPost, [postId], function (err, result) {
-        // console.log("mysql select post avec id : " + postId)
-        // console.log(result[0])
         if (result.length == 0) {
             return res.status(400).json({
                 message: "Pas de publication à cette adresse."
             });
         };
         if (userId === result[0].id_user || isAdmin) {
-            // console.log("l'utilisateur peut supprimer ce post")
+            console.log("l'utilisateur peut supprimer ce post")
             if (err) {
                 return res.status(500).json(err.message);
             };
-            if (result > 0) { //if req.file : suppression image et ensuite mysql.query
-                const filename = result[0].visualContent.split("/images/")[1];
-                fs.unlink(`images/${filename}`, () => { // On supprime le fichier image en amont
-                    sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
-                    mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
-                        if (err) {
-                            return res.status(500).json(err.message);
-                        };
-                        res.status(200).json({
-                            message: "Publication effacée !"
-                        });
-                    });
-                })
-            } else {
-                sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
-                mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
-                    if (err) {
-                        return res.status(500).json(err.message);
+            if (result[0].visualContent != null) { //if req.file : suppression image et ensuite mysql.query
+                const filename = result[0].visualContent.split("/fichiers/")[1];
+                console.log(filename);
+                fs.unlink(`fichiers/${filename}`, (err => {
+                    if (err){
+                        return res.status(500).json(err.message); 
                     };
-                    res.status(200).json({
-                        message: "Publication supprimée !"
-                    });
-                });
+                    // console.log("fichier suppr");
+                    sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?"
+                }));
             }
+            else {
+                // console.log('pas de fichier ')
+                sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
+            }
+            mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
+                if (err) {
+                    return res.status(500).json(err.message);
+                };
+                res.status(200).json({
+                    message: "Publication supprimée !"
+                });
+            });
         } else {
             return res.status(403).json({
                 message: "vous ne pouvez pas supprimer un post dont vous n'êtes pas l'auteur"
             });
         }
-
     });
 }
 
