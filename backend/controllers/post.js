@@ -6,18 +6,17 @@ const Utils = require("../utils/utils"); //importe la fonction pour décoder le 
 
 // fonction pour afficher tous les posts //ajouter les partages ! + ajouter conditions que l'user ait un compte ?
 exports.getAllPosts = (req, res, next) => {
-    let sqlGetAllPosts = `SELECT posts.id AS 'postId',
-    posts.content AS 'contenu publication', 
-    posts.date AS 'date publication'
-    FROM posts   
-    ORDER BY posts.date LIMIT 15`;
-    // get all posts join to users name and cie
-    // sqlGetAllPosts = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
-    // users.firstName, users.lastName, users.pseudo, users.profilePic, comments.commentContent, comments.date, comments.id_user, comments.id_post
-    // FROM posts
-    // LEFT JOIN users ON users.id = posts.id_user
-    // left JOIN comments ON comments.id_post=posts.id
-    // ORDER BY posts.date limit 15`;
+    let sqlGetAllPosts = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
+    users.firstName, users.lastName, users.pseudo, users.profilePic, comments.commentContent, comments.date, comments.id_user, comments.id_post
+    FROM posts
+    LEFT JOIN users ON users.id = posts.id_user
+    left JOIN comments ON comments.id_post=posts.id
+    ORDER BY posts.date`;
+    // `SELECT posts.id AS 'postId',
+    // posts.content AS 'contenu publication', 
+    // posts.date AS 'date publication'
+    // FROM posts   
+    // ORDER BY posts.date LIMIT 15`;
     mysql.query(sqlGetAllPosts, function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -36,21 +35,13 @@ exports.getAllPosts = (req, res, next) => {
 exports.getAllPostsOfUser = (req, res, next) => {
     const userId = req.params.id;
 
-    let sqlGetAllPosts = `SELECT posts.id AS 'post id',
-    users.id AS 'userId',
-    posts.content AS 'contenu publication', 
-    posts.date AS 'date publication'
-    FROM users, posts WHERE users.id = posts.id_user AND users.id = ?
-    ORDER BY posts.date LIMIT 20`;
-    // get all post d'un user + les commentaires s'ils existent 
-    // 'SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
-    // users.firstName, users.lastName, users.pseudo, users.profilePic,
-    // comments.commentContent, comments.date, comments.id_user, comments.id_post
-    // FROM posts
-    // LEFT JOIN users ON users.id = posts.id_user
-    // LEFT JOIN comments ON comments.id_post=posts.id
-    // // #ORDER BY posts.date
-    // WHERE posts.id_user= ?'
+    let sqlGetAllPosts = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
+    users.firstName, users.lastName, users.pseudo, users.profilePic
+    FROM posts
+    LEFT JOIN users ON users.id = posts.id_user
+    WHERE posts.id_user = ?
+    ORDER BY posts.date`;
+
     mysql.query(sqlGetAllPosts, [userId], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -69,7 +60,12 @@ exports.getAllPostsOfUser = (req, res, next) => {
 exports.getOnePost = (req, res, next) => {
     const postId = req.params.id;
 
-    let sqlGetPost = `SELECT * FROM posts WHERE posts.id = ?`;
+    let sqlGetPost = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
+    users.firstName, users.lastName, users.pseudo, users.profilePic
+    FROM posts
+    LEFT JOIN users ON users.id = posts.id_user
+    WHERE posts.id = 28`;
+    // `SELECT * FROM posts WHERE posts.id = ?`;
     mysql.query(sqlGetPost, [postId], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -233,6 +229,41 @@ exports.createComment = (req, res, next) => {
     }
 }
 
+//get all comments of one post === ok
+exports.getAllComments = (req, res, next) => {
+    const postId = req.params.id;
+    let sqlGetPost = `SELECT posts.* FROM posts WHERE posts.id = ?`;
+
+    mysql.query(sqlGetPost, [postId], function (err, result) {
+        if (err) {
+            return res.status(500).json(err.message);
+        };
+        if (result.length == 0) {
+            console.log("pas de post à l'id : " + postId);
+            return res.status(400).json({
+                message: "Pas de publication à cette adresse !"
+            });
+        }
+        // res.status(200).json(result);
+        console.log(result[0])
+        let sqlGetComments = `SELECT comments.id, comments.commentContent, comments.date, comments.id_user, comments.id_post
+        ,users.firstName, users.lastName, users.pseudo, users.profilePic
+        FROM comments
+        LEFT JOIN users ON users.id=comments.id_user
+        WHERE comments.id_post = ?
+        ORDER BY comments.id`;
+        mysql.query(sqlGetComments, [postId], function (err, result){
+            if(err){
+                return res.status(500).json(err.message);
+            };
+            if(result == 0 ){
+                return res.status(400).json({message : "Il n'y a pas encore de commentaire sur cette publication !"})
+            }
+            console.log(result);
+            return res.status(200).json(result);
+        })
+    });
+}
 // delete one comment
 exports.deleteOneComment = (req, res, next) => {
     const commentId = req.params.id;
