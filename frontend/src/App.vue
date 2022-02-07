@@ -1,27 +1,22 @@
 <template>
-  <div id="app">
-    <Accueil/>
+  <div id="app" class="container">
+    <!-- <header-top></header-top> -->
+    <router-view></router-view>
+    <!-- <Login/> -->
   </div>
 </template>
 
 <script>
-import Accueil from './components/Accueil.vue'
+// import HeaderTop from './components/HeaderTop/HeaderTop'
 
 export default {
   name: 'App',
   components: {
-    Accueil
+    // HeaderTop
   }
 }
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  /* color: #2c3e50;
-  margin-top: 60px; */
-}
+<style src="./style.css">
+
 </style>

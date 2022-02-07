@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <img class="logo-accueil img-fluid mx-auto" src="../assets/icon-above-font.png">
+        <img class="logo-accueil img-fluid mx-auto" src="../../assets/icon-above-font.png">
         <h1>Le réseau social de votre entreprise : Groupomania !</h1>
         <p>{{ txt }}</p>
         <!-- formulaire de connexion -->
@@ -16,7 +16,7 @@
         <!-- if !regex alors bouton outline-->
         <div type="button" class="btn btn-secondary btn-block m-1">Se connecter</div>
         <br>
-        <div type="button" class="btn btn-secondary btn-block m-1">Créer un compte</div>
+        <router-link to="/signup" class="m-1">Je n'ai pas de compte, je m'inscris</router-link>
         <br>
         <br>
         <br>
@@ -27,7 +27,7 @@
 <script lang="ts">
 
 export default {
-    name: 'Accueil',
+    name: 'Login',
     data(){
         return {
             txt: "Je suis le texte de l'accueil"
@@ -36,13 +36,6 @@ export default {
 }
 </script>
 
-<style scoped>
-    .container {
-        max-width: 500px;
-    }
-    .logo-accueil{
-        max-width : 80%;
-        max-height: 40%;
-        display: block;
-    }
+<style src="./style.css">
+    
 </style>
