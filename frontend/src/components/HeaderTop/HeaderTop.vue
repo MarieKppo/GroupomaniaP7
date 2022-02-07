@@ -2,9 +2,9 @@
     <div role="navigation" class="navbar mx-1 justify-content-center flex-row">
         <!-- d-grid gap-2 d-md-flex justify-content-md-end -->
         <img class="logo navbar-brand" src="../../assets/icon-left-font-monochrome-black.svg">    
-        <feed class="btn">Fil d'actu</feed>
-        <profile  class="btn">Profil</profile>
-        <deconnect class="btn">Me déconnecter</deconnect>
+        <router-link to="/feed" class="m-1">Fil d'actu</router-link>
+        <router-link to="/profile" class="m-1">Mon profil</router-link>
+        <router-link to="/" class="m-1">Me déconnecter</router-link>
     </div>
 </template>
 

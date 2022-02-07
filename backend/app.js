@@ -1,7 +1,7 @@
 //import de modules
 const express = require('express');
 const app = express();
-//const helmet = require('helmet');
+const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 
@@ -26,8 +26,8 @@ app.use((req, res, next) => {
     next();
   });
 
-// app.use(helmet());
-// app.use(cors());
+app.use(helmet());
+app.use(cors());
 
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));

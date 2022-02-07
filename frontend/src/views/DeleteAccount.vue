@@ -1,26 +1,27 @@
 <template>
     <div>
         <header-top></header-top>
-        <signup></signup>
+        <delete-account></delete-account>
         <footer-bottom></footer-bottom>
     </div>
 </template>
 
 <script>
 import HeaderTop from '../components/HeaderTop/HeaderTop.vue'
-import SignUp from '../components/SignUp/SignUp.vue'
+import DeleteAccount from '../components/DeleteAccount/DeleteAccount.vue'
 import FooterBottom from '../components/FooterBottom/FooterBottom.vue'
 
 export default {
     name: 'Login',
     components: {
         'header-top': HeaderTop,
-        'signup': SignUp,
+        'delete-account': DeleteAccount,
         'footer-bottom': FooterBottom
     }
 }
 </script>
 
-<style scoped>
+,
+        DeleteAccount<style scoped>
 
 </style>

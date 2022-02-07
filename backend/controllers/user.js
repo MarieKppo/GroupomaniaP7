@@ -67,7 +67,7 @@ exports.login = (req, res, next) => {
                     lastName: result[0].lastName,
                     userId: result[0].id,
                     profilePic: result[0].profilePic,
-                    isAdmin: result[0].isAdmin,
+                    // isAdmin: result[0].isAdmin,
                     token: jwt.sign(usAd, `${process.env.TOKEN_KEY}`, {
                         expiresIn: "24h"
                     })
