@@ -6,8 +6,9 @@ const Utils = require("../utils/utils"); //importe la fonction pour décoder le 
 
 // fonction pour afficher tous les posts et partages
 exports.getAllPosts = (req, res, next) => {
+    console.log("je suis ici");
     let feed = [];
-    let sqlGetAllPosts = `SELECT posts.content, posts.visualContent, posts.date, posts.id_user,
+    let sqlGetAllPosts = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
     users.firstName, users.lastName, users.pseudo, users.profilePic
     FROM posts, users
     WHERE users.id = posts.id_user
@@ -26,6 +27,8 @@ exports.getAllPosts = (req, res, next) => {
         // ajout d'un objet par post dans le tableau feed
         result.forEach(element => {
             let publication = {
+                shareId: null,
+                postId: element.id,
                 userId: element.id_user,
                 date: element.date, //ajouter un script
                 pseudo: element.pseudo,
@@ -34,13 +37,13 @@ exports.getAllPosts = (req, res, next) => {
                 lastName: element.lastName,
                 content: element.content,
                 visualContent: element.visualContent,
-                type: 'post'
+                type: 'Posté'
             }
             feed.push(publication)
         });
         // console.log("nombre de lignes dans le tableau feed : " + feed.length)
             // recup et ajout au feed de tous les partages
-            let sqlGetAllSharedP = `SELECT share.*, users.pseudo, users.profilePic, users.lastName, users.firstName, posts.content, posts.visualContent
+            let sqlGetAllSharedP = `SELECT share.*, share.id, share.id_post, users.pseudo, users.profilePic, users.lastName, users.firstName, posts.content, posts.visualContent
             FROM share, users , posts
             WHERE share.id_user = users.id 
             AND share.id_post = posts.id
@@ -53,6 +56,8 @@ exports.getAllPosts = (req, res, next) => {
                 // ajout d'un objet par partage dans le tableau feed
                 result.forEach(element => {
                     let publication = {
+                        shareId: element.id,
+                        postId: element.id_post,
                         userId: element.id_user,
                         date: element.share_date, //ajouter un script
                         pseudo: element.pseudo,
@@ -61,7 +66,7 @@ exports.getAllPosts = (req, res, next) => {
                         lastName: element.lastName,
                         content: element.content,
                         visualContent: element.visualContent,
-                        type: 'partage'
+                        type: 'Partagé'
                     }
                     feed.push(publication)
                 });
@@ -77,12 +82,12 @@ exports.getAllPosts = (req, res, next) => {
 exports.getAllPostsOfUser = (req, res, next) => {
     const userId = req.params.id;
     let userFeed = [];
-    let sqlGetAllUserPosts = `SELECT posts.content, posts.visualContent, posts.date, posts.id_user,
+    let sqlGetAllUserPosts = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
     users.firstName, users.lastName, users.pseudo, users.profilePic
     FROM posts, users
     WHERE users.id = posts.id_user AND users.id = ?
     ORDER BY posts.date LIMIT 20`;
-    let sqlGetAllSharedPByUser = `SELECT share.*, 
+    let sqlGetAllSharedPByUser = `SELECT share.*, share.id, share.id_post,
     users.pseudo, users.profilePic, users.lastName, users.firstName, 
     posts.content, posts.visualContent
     FROM share, users , posts
@@ -96,6 +101,8 @@ exports.getAllPostsOfUser = (req, res, next) => {
         console.log(`nombre de post de ${userId} = ${result.length}`)
         result.forEach(element => {
             let publication = {
+                shareId: null,
+                postId: element.id,
                 userId: element.id_user,
                 date: element.date, //ajouter un script
                 pseudo: element.pseudo,
@@ -116,6 +123,8 @@ exports.getAllPostsOfUser = (req, res, next) => {
             // ajout d'un objet par partage dans le tableau feed
             result.forEach(element => {
                 let publication = {
+                    shareId: element.id,
+                    postId: element.id_post,
                     userId: element.id_user,
                     date: element.share_date, //ajouter un script
                     pseudo: element.pseudo,
@@ -212,7 +221,7 @@ exports.deleteOnePost = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    // console.log('userId : ' + userId + " isAdmin : " + isAdmin)
+    console.log('userId : ' + userId + " isAdmin : " + isAdmin + " postId " + postId)
     let sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
     let sqlDeletePost;
     mysql.query(sqlSelectPost, [postId], function (err, result) {
@@ -226,7 +235,7 @@ exports.deleteOnePost = (req, res, next) => {
             if (err) {
                 return res.status(500).json(err.message);
             };
-            if (result[0].visualContent != null) { //if req.file : suppression image et ensuite mysql.query
+            if (result[0].visualContent !== null) { //if req.file : suppression image et ensuite mysql.query
                 const filename = result[0].visualContent.split("/fichiers/")[1];
                 console.log(filename);
                 fs.unlink(`fichiers/${filename}`, (err => {
@@ -237,7 +246,7 @@ exports.deleteOnePost = (req, res, next) => {
                     sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?"
                 }));
             } else {
-                // console.log('pas de fichier ')
+                console.log('pas de fichier ')
                 sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
             }
             mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
@@ -259,6 +268,7 @@ exports.deleteOnePost = (req, res, next) => {
 // PARTAGES
 // fonction pour partager une publi
 exports.sharePost = (req, res, next) => {
+    console.log('dans la fonction sharepost backend')
     const postId = req.params.id;
     const token = Utils.getReqToken(req);
     const userId = token.userId;
@@ -315,7 +325,7 @@ exports.deleteSharedPost = (req, res, next) => {
                 return res.status(500).json(err.message);
             };
             let sqlDeleteSharedPost = `DELETE FROM share WHERE share.id = ? AND share.id_user = ?`;
-            mysql.query(sqlDeleteSharedPost, [userId, sharedId], function (err, result) {
+            mysql.query(sqlDeleteSharedPost, [sharedId, userId], function (err, result) {
                 if (err) {
                     return res.status(500).json(err.message);
                 };

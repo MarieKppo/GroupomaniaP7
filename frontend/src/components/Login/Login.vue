@@ -3,7 +3,7 @@
         <img class="logo-accueil img-fluid mx-auto" src="../../assets/icon-above-font.png">
         <h1>Le réseau social de votre entreprise : Groupomania !</h1>
         <!-- formulaire de connexion -->
-        <form @submit.prevent=connect() >
+        <form @submit.prevent=connect()>
             <div class="form-group mb-2">
                 <label for="identifiant">Votre identifiant : </label>
                 <input type="text" id="identifiant" class="form-control" required v-model=" userEmail " placeholder="marc.dupont@groupomania.fr">
@@ -29,9 +29,7 @@
 <script>
 import axios from 'axios';
 
-
 // const passwordField = document.querySelector('#password')
-
  
 export default {
     name: 'Login',
@@ -56,9 +54,9 @@ export default {
                 localStorage.setItem("connectedUser", JSON.stringify(response.data));
                 this.$router.push("/feed");
                 console.log("réussi");
-                console.log(response.headers.authorization);
                 console.log("localStorage connectedUser");
                 console.log(localStorage.getItem("connectedUser"));
+
             })
             .catch(err =>{
                 console.log("loupé");

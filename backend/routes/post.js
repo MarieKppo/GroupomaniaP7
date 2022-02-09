@@ -17,7 +17,7 @@ router.post('/', auth, multerPost, postCtrl.createPost); //écrire une publi //o
 router.delete('/:id', auth, postCtrl.deleteOnePost); //suppri une publi
 
 //routes pour les partages
-router.post('/:id/share', auth, postCtrl.sharePost);//partager une publi
+router.post('/share/:id', auth, postCtrl.sharePost);//partager une publi
 router.get('/share/:id', auth, postCtrl.getOneSharedPost);// afficher un partage de post
 router.delete('/share/:id', auth, postCtrl.deleteSharedPost); // suppr un partage
 //routes pour les commentaires

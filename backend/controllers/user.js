@@ -62,12 +62,13 @@ exports.login = (req, res, next) => {
                 };
                 console.log(usAd)
                 res.status(200).json({
+                    userId: result[0].id,
                     pseudo: result[0].pseudo,
                     firstName: result[0].firstName,
                     lastName: result[0].lastName,
-                    userId: result[0].id,
+                    email: result[0].email,
                     profilePic: result[0].profilePic,
-                    // isAdmin: result[0].isAdmin,
+                    isAdmin: result[0].isAdmin,
                     token: jwt.sign(usAd, `${process.env.TOKEN_KEY}`, {
                         expiresIn: "24h"
                     })

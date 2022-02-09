@@ -1,14 +1,14 @@
 <template>
     <div>
-        <h1>Profil de /UserName/</h1>
+        <h1>Profil de {{ userName }}</h1>
         <div class="d-inline-flex" id="profileId"> <!--carte profil-->
             <img id="profilePic" class="card-img" src="../../assets/defaultProfilePic.jpg" alt="balise alt de la photo de profil">
             <!-- infos utilisateur -->
             <div class="card col">
                 <div class="card-body">
-                    <h5 class="card-title">pseudo</h5>
-                    <p class="card-text">{{ userName }} {{ userData.lastName }}</p>
-                    <button href="#" class="btn btn-secondary" role="button">Contacter</button>
+                    <h5 class="card-title">{{ userPseudo }}</h5>
+                    <p class="card-text">{{ userName }} {{ userLastName }}</p>
+                    <button :href="`mailto:` + userEmail" class="btn btn-secondary" role="button">Contacter </button>
                     <div id="EditPic" class="mt-1"> <!-- faire de cette div un seul block bouton-->
                         <!-- <b-icon icon="arrow-down-square" font-scale="2"></b-icon> -->
                         <input type="file" id="newPic" name="newPic" placeholder="Modifier ma photo" accept="image/png, image/jpg, image/jpeg">
@@ -34,8 +34,13 @@ export default {
     name: 'Profile',
     data() {
         return {
-            userData: "",
-            userName: ""
+            userId: "",
+            userPseudo: "",
+            userName: "",
+            userLastName: "",
+            userEmail: "",
+            profilePic: "",
+            token: ""
         };
     },
     //if userIdparam == userid token : 
@@ -48,11 +53,13 @@ export default {
             console.log("localStorage");
             console.log(JSON.parse(localStorage.getItem("connectedUser")));
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
-            console.log("userData.firstName");
-            console.log(userData.firstName);
-            this.userName = userData.firstName
-            
-
+            this.userId = userData.userId;
+            this.userPseudo = userData.pseudo;
+            this.userName = userData.firstName;
+            this.userLastName = userData.lastName;
+            this.userEmail = userData.email;
+            this.profilePic = userData.profilePic;
+            this.token = userData.token;
     }
 }
 </script>
