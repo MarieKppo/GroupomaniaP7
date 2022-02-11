@@ -1,5 +1,6 @@
 <template>
-    <div>    
+    <div> 
+        <!-- publier du contenu    -->
         <div class="my-3 bg-light p-2 rounded">
             <!-- <div class="d-flex justify-content-between align-items-center"> -->
                 <h5>Publier du contenu</h5>
@@ -29,54 +30,37 @@
                 <button type="submit" class="btn btn-secondary mt-1">Publier</button> <!-- v-if="textContent != null || visualContent != null" -->
             </form>
 
-            <!-- <div class="card ">
-                <input 
-                    class="input-group border-light bg-white" 
-                    id="visualContent" 
-                    v-modal=" visualContent " 
-                    type="file" 
-                    name="visualContent" 
-                    accept="image/png, image/jpg, image/jpeg"
-                >
-                <textarea 
-                    class="border-light" 
-                    id="textContent" 
-                    v-modal=" textContent " 
-                    type="textarea" 
-                    name="textContent" 
-                    minlength="3" 
-                    maxlength="300" 
-                    size="150" 
-                    placeholder="Que voulez-vous partager aujoud'hui ?">
-                </textarea>
-                <button class="btn btn-secondary mt-1" v-on:click="createPost()">Publier</button> 
-                 v-if="textContent != null || visualContent != null">
-             </div> -->
-
         </div>
+        <!-- Afficher les publications -->
         <div>
-            <h5>Global Feed</h5>
+            <h5>Fil de publications</h5>
                 <div v-bind:key="date" v-for="(post, date) in posts">
+                <div class="card" v-if="posts.length < 1">
+                    <div class="card-body">
+                        Il n'y a pas de publications à afficher. Rédigez la première !
+                    </div>
+                </div>
                 <div class="card"> <!-- v-for v-model -->
                     <div class="card-body">
                         <!-- info utilisateur et options suppr -->
                         <div class="card-title d-flex justify-content-between">
                             <div class="d-flex">
                                 <img class="profilePic" v-if="post.profilePic" v-bind:src="post.profilePic"> <!-- ajouter la miniature profilePic -->
-                                <small class="card-title">{{ post.pseudo }}<br>{{ post.firstName }} {{ post.lastName }}</small>
+                                <p class="card-title p-2 font-weight-bold">{{ post.pseudo }}</p>
+                                <p class="card-title p-2" v-if="post.pseudo === null">{{ post.firstName }} {{ post.lastName }}</p>
                             </div>
-                            <b-icon icon="x-square" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
-                            <b-icon icon="x-square" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
+                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
+                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
                         </div> 
                         <!-- contenu publication -->
                         <p class="card-text">{{ post.content }}</p>
-                        <img class="card-img" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
+                        <img class="card-img mb-2" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
                         <!-- info publication et options interactions -->
                         <div class="d-flex justify-content-between">
                             <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
                             <div class="postOptions">
-                                <a class="card-link" v-if="post.type == 'post' || post.type == 'Posté'" @click="sharePost(post.postId)" role="button">Partager</a>
-                                <a class="card-link" role="button">Commenter</a>
+                                <button class="card-link btn btn-secondary"  @click="sharePost(post.postId)" role="button">Partager</button> 
+                                <button class="card-link btn btn-secondary" role="button">Commenter</button>
                             </div>
                         </div>
                     </div>
@@ -98,7 +82,7 @@ export default {
             userId: "",
             token: "",
             posts: [], // stocke la data de chaque post 
-            comments: null,
+            comments: [],
             textContent: null,
             visualContent: null
         };
@@ -191,27 +175,20 @@ export default {
         deletePost(postId) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
-            console.log('dans la fonction delete post vue postId : '+ postId + ' token : '+this.token)
+            console.log('dans la fonction delete post vue postId : '+ postId + ' token : '+ this.token)
             if (confirm("Voulez vous vraiment supprimer ce post ?")) {
                 axios({
                     method: "delete",
+                    data: postId,
                     url: `http://localhost:3000/api/posts/${postId}`,
-                    // data: formData,
-                    headers: { // définir les données requises + le token pour auth
-                        // "content-type": "multipart/form-data",
+                    headers: { // définir le token pour auth
                         Authorization: `Bearer ${userData.token}`
                     },
                 })
-                    
-                    // .delete(`http://localhost:3000/api/posts/${postId}`, {
-                    //     headers: {
-                    //         'Authorization': `Bearer ${userData.token}`,
-                    //     }
-                    // })   
-                    .then(() => {
-                        this.displayAllPosts();
-                    })
-                    .catch((error) => console.log(error));
+                .then(() => {
+                    this.displayAllPosts();
+                })
+                .catch((error) => console.log(error));
             }
         },
         //supprimer un partage
@@ -236,6 +213,7 @@ export default {
         displayAllPosts(){
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
+            this.userId = userData.userId
             axios
                 .get("http://localhost:3000/api/posts", {
                     headers: {
@@ -255,10 +233,12 @@ export default {
 
 <style>
 .profilePic{
-    width: 10%;
-    /* height: auto; */
-    margin: 2px;
-    border: solid;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid grey;
+    object-fit: cover;
 }
 
 </style>

@@ -60,18 +60,16 @@ exports.login = (req, res, next) => {
                     'userId': result[0].id,
                     'isAdmin': !!result[0].isAdmin // transforme le tinyint(1) en true ou false
                 };
-                console.log(usAd)
+                // console.log(usAd)
                 res.status(200).json({
                     userId: result[0].id,
-                    pseudo: result[0].pseudo,
-                    firstName: result[0].firstName,
-                    lastName: result[0].lastName,
-                    email: result[0].email,
-                    profilePic: result[0].profilePic,
+                    token: jwt.sign(usAd, `${process.env.TOKEN_KEY}`, {expiresIn: "24h"}),
                     isAdmin: result[0].isAdmin,
-                    token: jwt.sign(usAd, `${process.env.TOKEN_KEY}`, {
-                        expiresIn: "24h"
-                    })
+                    // pseudo: result[0].pseudo,
+                    // firstName: result[0].firstName,
+                    // lastName: result[0].lastName,
+                    // email: result[0].email,
+                    // profilePic: result[0].profilePic
                 })
             })
             .catch(e => res.status(500).json(e));

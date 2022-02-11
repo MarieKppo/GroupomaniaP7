@@ -20,16 +20,21 @@ app
 
 //CORS : traitement erreurs et ajout d'headers à supprimer après import de cors
 app.use((req, res, next) => {
-	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization");
-	res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-	next();
+	res.setHeader('Access-Control-Allow-Origin', 'http://localhost/8080');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    next();
 });
 app.use(helmet());
-app.use(cors());
+app.use(cors({origin:true}));
+app.use((req, res, next) => { // cross origin policy pour permettre le get et read des images sur cross origin (ports différents)
+	res.header("Cross-Origin-Resource-Policy", "cross-origin");
+	next();
+  });
 
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/fichiers', express.static(path.join(__dirname, 'fichiers'))); 
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 

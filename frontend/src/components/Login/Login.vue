@@ -36,7 +36,8 @@ export default {
     data(){
         return {
             userEmail: "",
-            userPassword: ""
+            userPassword: "",
+            id: ""
         };
     },
     methods: {
@@ -51,12 +52,11 @@ export default {
                 password: this.userPassword
             })
             .then(response => {
+                this.id = response.data.userId;
                 localStorage.setItem("connectedUser", JSON.stringify(response.data));
-                this.$router.push("/feed");
-                console.log("réussi");
-                console.log("localStorage connectedUser");
-                console.log(localStorage.getItem("connectedUser"));
-
+                console.log("connexion réussie");
+                console.log("userId : "+ this.id);
+                this.$router.push(`/feed`);    
             })
             .catch(err =>{
                 console.log("loupé");

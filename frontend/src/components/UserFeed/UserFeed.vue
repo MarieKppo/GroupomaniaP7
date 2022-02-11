@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="my-3 bg-light p-2 rounded">
+        <div class="my-3 bg-light p-2 rounded" v-if="userId == ProfileId">
             <h5>Publier du contenu</h5>    
             <form @submit.prevent=createPost() class="card"> 
                 <textarea 
@@ -35,20 +35,21 @@
                         <div class="card-title d-flex justify-content-between">
                             <div class="d-flex">
                                 <img class="profilePic" v-if="post.profilePic" v-bind:src="post.profilePic"> <!-- ajouter la miniature profilePic -->
-                                <small class="card-title">{{ post.pseudo }}<br>{{ post.firstName }} {{ post.lastName }}</small>
+                                <p class="card-title p-2 font-weight-bold">{{ post.pseudo }}</p>
+                                <p class="card-title p-2" v-if="post.pseudo === null">{{ post.firstName }} {{ post.lastName }}</p>
                             </div>
-                            <b-icon icon="x-square" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
-                            <b-icon icon="x-square" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
+                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
+                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
                         </div> 
                         <!-- contenu publication -->
                         <p class="card-text">{{ post.content }}</p>
-                        <img class="card-img" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
+                        <img class="card-img mb-2" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
                         <!-- info publication et options interactions -->
                         <div class="d-flex justify-content-between">
                             <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
                             <div class="postOptions">
-                                <a class="card-link" v-if="post.type == 'post' || post.type == 'Posté'" @click="sharePost(post.postId)" role="button">Partager</a>
-                                <a class="card-link" role="button">Commenter</a>
+                                <button class="card-link btn btn-secondary"  @click="sharePost(post.postId)" role="button">Partager</button> 
+                                <button class="card-link btn btn-secondary" role="button">Commenter</button>
                             </div>
                         </div>
                     </div>
@@ -71,20 +72,23 @@ export default {
             posts: [], // stocke la data de chaque post 
             comments: null,
             textContent: null,
-            visualContent: null
+            visualContent: null,
+            ProfileId: ""
         };
     },
     created() {
         let userData = JSON.parse(localStorage.getItem("connectedUser"));
         this.admin = !!userData.isAdmin;
-        console.log("userData admin : "+ this.admin)
         this.userId = userData.userId;
-        this.token = userData.token;
-        console.log("userData userId : "+ this.userId)
+        console.log("userData admin : "+ this.admin)
+        this.ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+
+        console.log("userId connecté : " + this.userId)
+        console.log("profil visité : " + this.ProfileId)
 
         //afficher les posts
         axios
-            .get(`http://localhost:3000/api/posts/profile/${this.userId}/posts`, {
+            .get(`http://localhost:3000/api/posts/profile/${this.ProfileId}/posts`, {
                 headers: {
                     'Authorization': `Bearer ${userData.token}`,
                 }
@@ -199,9 +203,10 @@ export default {
         // afficher les posts
         displayAllUserPosts(){
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
-            this.token = userData.token;
+            let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+
             axios
-                .get(`http://localhost:3000/api/posts/profile/${this.userId}/posts`, {
+                .get(`http://localhost:3000/api/posts/profile/${ProfileId}/posts`, {
                     headers: {
                         'Authorization': `Bearer ${userData.token}`,
                     }
@@ -217,14 +222,13 @@ export default {
 }
 </script>
 
-
-
 <style>
 .profilePic{
-    width: 10%;
-    /* height: auto; */
-    margin: 2px;
-    border: solid;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid grey;
+    object-fit: cover;
 }
-
 </style>

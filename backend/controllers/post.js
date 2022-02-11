@@ -231,7 +231,8 @@ exports.deleteOnePost = (req, res, next) => {
             });
         };
         if (userId === result[0].id_user || isAdmin) {
-            console.log("l'utilisateur peut supprimer ce post")
+            console.log("l'utilisateur peut supprimer ce post");
+            console.log(result[0])
             if (err) {
                 return res.status(500).json(err.message);
             };
@@ -242,15 +243,17 @@ exports.deleteOnePost = (req, res, next) => {
                     if (err) {
                         return res.status(500).json(err.message);
                     };
-                    // console.log("fichier suppr");
-                    sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?"
+                    console.log("fichier suppr");
                 }));
+                sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?"
             } else {
                 console.log('pas de fichier ')
                 sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
             }
+            console.log('elmt pr requete suppr post userId : ' + userId + ' postId : '+postId)
             mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
                 if (err) {
+                    console.log("l'erreur est ici" + err)
                     return res.status(500).json(err.message);
                 };
                 res.status(200).json({
