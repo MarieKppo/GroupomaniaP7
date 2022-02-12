@@ -3,15 +3,23 @@
         <img class="logo-accueil img-fluid mx-auto" src="../../assets/icon-above-font.png">
         <h1>Le réseau social de votre entreprise : Groupomania !</h1>
         <!-- formulaire de connexion -->
+        <div>
+            Connexion :
+        </div>
         <form @submit.prevent=connect()>
-            <div class="form-group mb-2">
-                <label for="identifiant">Votre identifiant : </label>
-                <input type="text" id="identifiant" class="form-control" required v-model=" userEmail " placeholder="marc.dupont@groupomania.fr">
-                <label for="password">Votre mot de passe : </label>
-                <!-- <div class="d-flex align-items-center form-control"> -->
-                    <input type="password" id="password" class="form-control" required v-model="userPassword" placeholder="m0tdEpass3">
-                    <!-- <button onclick=" switchVisibility() "><b-icon icon="eye-fill"></b-icon></button> 
-                </div> -->
+            <div class="form-group mb-2 d-flex flex-column">
+                <label for="identifiant">
+                <input type="text" id="identifiant" required v-model=" userEmail " placeholder="marc.dupont@groupomania.fr">
+                </label>
+
+                <label>
+                <input type="password" id="password" required v-model=" userPassword " placeholder="Mot de passe">
+
+                <div class="password-icon" @click="switchVisibility()">
+                    <b-icon icon="eye-fill" class="eye-fill"></b-icon>
+                    <b-icon icon="eye-slash-fill" class="eye-slash-fill"></b-icon>
+                </div>
+                </label>
             </div>
             <button type="submit" class="btn btn-secondary btn-block m-1">Se connecter</button>
         </form>
@@ -41,10 +49,23 @@ export default {
         };
     },
     methods: {
-        // switchVisibility() { // changer la visibilité du mdp pour contrôler ce qui est saisi
-        //     if (passwordField.getAttribute('type') === 'password') passwordField.setAttribute('type', 'text')
-        //     else passwordField.setAttribute('type', 'password')
-        // },
+        switchVisibility() { // changer la visibilité du mdp pour contrôler ce qui est saisi 
+            const eye = document.querySelector(".eye-fill");
+            const eyeoff = document.querySelector(".eye-slash-fill");
+            const passwordField = document.querySelector("input[type=password]");
+            
+            eye.addEventListener("click", () => {
+                eye.style.display = "none";
+                eyeoff.style.display = "block";
+                passwordField.type = "text";
+            });
+
+            eyeoff.addEventListener("click", () => {
+                eyeoff.style.display = "none";
+                eye.style.display = "block";
+                passwordField.type = "password";
+            });
+        },
         connect(){
             axios
             .post("http://localhost:3000/api/users/login", {

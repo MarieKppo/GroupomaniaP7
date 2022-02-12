@@ -12,7 +12,7 @@
                 <label for="identifiant">Mon prénom* : </label>
                 <input type="text" id="identifiant" class="form-control">
                 <label for="identifiant">Mon email* : </label>
-                <input type="text" id="identifiant" class="form-control">
+                <input type="text" id="identifiant" pattern="[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+.[a-zA-Z.]{2,15}" class="form-control">
                 <label for="password">Mon mot de passe* : </label>
                 <input type="text" id="password" class="form-control">
                 <p>* : champs obligatoires</p>

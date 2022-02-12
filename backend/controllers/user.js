@@ -205,6 +205,7 @@ exports.modifyUserPassword = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
+    //ajouter un regex ?
 
     if ((userId != userIdPassword) && (!isAdmin)) {
         return res.status(403).json({
@@ -258,6 +259,7 @@ exports.modifyUserPassword = (req, res, next) => {
 // fonction pour supprimer son compte
 exports.deleteOneUser = (req, res, next) => {
     const password = req.body.password;
+    const email = req.body.email;
     const userIdToDelete = req.params.id; //id de l'url/route
     const token = Utils.getReqToken(req);
     const userId = token.userId;
@@ -268,8 +270,9 @@ exports.deleteOneUser = (req, res, next) => {
             message: "Vous n'avez pas les droits nécessaires à la suppression de ce profil."
         });
     } else {
-        let sqlFindUser = "SELECT password, profilePic FROM users WHERE id = ?"; //recup user dans bdd
-        mysql.query(sqlFindUser, [userIdToDelete], function (err, result) {
+        //ajouter la vérif de l'email /: à la place de l'id pour requete ?
+        let sqlFindUser = "SELECT password, profilePic FROM users WHERE email = ?"; //recup user dans bdd
+        mysql.query(sqlFindUser, [email], function (err, result) {
             if (err) {
                 return res.status(500).json(err.message);
             }
@@ -278,23 +281,24 @@ exports.deleteOneUser = (req, res, next) => {
                     error: "Utilisateur non trouvé !"
                 });
             }
-            const filename = result[0].profilePic.split("/images/")[1];
-            console.log("filename : " + filename);
-
-            if (filename !== "defaultProfilePic.jpg") {
-                fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
-                    if (e) {
-                        console.log(e);
-                    }
-                })
-            }
+            //ajouter ici la comparaison de l'email
+            
             let hashedPassword = result[0].password;
             bcrypt.compare(password, hashedPassword)
-                .then(valid => {
-                    if (!valid) {
-                        return res.status(401).json({
-                            error: "Mot de passe incorrect !"
-                        });
+            .then(valid => {
+                if (!valid) {
+                    return res.status(401).json({
+                        error: "Mot de passe incorrect !"
+                    });
+                }
+                    const filename = result[0].profilePic.split("/images/")[1];
+                    console.log("filename : " + filename);
+                    if (filename !== "defaultProfilePic.jpg") {
+                        fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
+                            if (e) {
+                                console.log(e);
+                            }
+                        })
                     }
                     let sqlDeleteUser = "DELETE FROM users WHERE id = ?";
                     mysql.query(sqlDeleteUser, [userIdToDelete], function (err, result) {
