@@ -28,7 +28,6 @@ exports.signup = (req, res, next) => {
                     message: "Compte créé !"
                 });
             });
-
         })
         .catch(e => res.status(500).json(e));
 }
@@ -258,19 +257,23 @@ exports.modifyUserPassword = (req, res, next) => {
 
 // fonction pour supprimer son compte
 exports.deleteOneUser = (req, res, next) => {
+    console.log("suppression compte back")
     const password = req.body.password;
     const email = req.body.email;
     const userIdToDelete = req.params.id; //id de l'url/route
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
+    console.log(isAdmin)
+    console.log("userid to delete : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
 
     if ((userIdToDelete != userId) && (!isAdmin)) {
         return res.status(403).json({
             message: "Vous n'avez pas les droits nécessaires à la suppression de ce profil."
         });
-    } else {
-        //ajouter la vérif de l'email /: à la place de l'id pour requete ?
+    } 
+    if (userIdToDelete == userId) {
+        console.log("je supprime mon profil : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
         let sqlFindUser = "SELECT password, profilePic FROM users WHERE email = ?"; //recup user dans bdd
         mysql.query(sqlFindUser, [email], function (err, result) {
             if (err) {
@@ -280,19 +283,17 @@ exports.deleteOneUser = (req, res, next) => {
                 return res.status(401).json({
                     error: "Utilisateur non trouvé !"
                 });
-            }
-            //ajouter ici la comparaison de l'email
-            
+            }            
             let hashedPassword = result[0].password;
             bcrypt.compare(password, hashedPassword)
-            .then(valid => {
-                if (!valid) {
-                    return res.status(401).json({
-                        error: "Mot de passe incorrect !"
-                    });
-                }
+                .then(valid => {
+                    if (!valid) {
+                        return res.status(401).json({
+                            error: "Mot de passe incorrect !"
+                        });
+                    }
                     const filename = result[0].profilePic.split("/images/")[1];
-                    console.log("filename : " + filename);
+                    console.log("filename ds req user to delete : " + filename);
                     if (filename !== "defaultProfilePic.jpg") {
                         fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
                             if (e) {
@@ -314,10 +315,75 @@ exports.deleteOneUser = (req, res, next) => {
                             message: "Compte utilisateur supprimé !"
                         });
                     });
+            })
+            .catch(e => {
+                    console.log('erreur ici ' + e)
+                    res.status(500).json(e)
+            });
+            
+        });
+    } 
+    if (isAdmin){ // userIdToDelete !== userId && 
+        console.log("admin supprime un profil (le sien ou pas) : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
+        // sql find user userId compare email et email stocké si ok alors set HashedPassword avec password stocké  
+        let sqlFindUser = "SELECT password, email FROM users WHERE id = ?"; //recup user dans bdd
+        mysql.query(sqlFindUser, [userId], function (err, result) {
+            if (err) {
+                return res.status(500).json(err.message);
+            }
+            if (result.length == 0) {
+                return res.status(401).json({
+                    error: "Utilisateur non trouvé !"
+                });
+            }
+            if (result[0].email == email){
+                let hashedPassword = result[0].password;
+
+                bcrypt.compare(password, hashedPassword)
+                .then(valid => {
+                    if (!valid) {
+                        return res.status(401).json({
+                            error: "Mot de passe incorrect !"
+                        });
+                    }
+                    let sqlFindUserToDelete = "SELECT profilePic FROM users WHERE id = ?"; //recup user dans bdd 
+                    mysql.query(sqlFindUserToDelete, [userIdToDelete], function (err, result){
+                        if(err){
+                            return res.status(500).json(err.message)
+                        };
+                        const filename = result[0].profilePic.split("/images/")[1];
+                        console.log("filename ds req user to delete : " + filename);
+                        if (filename !== "defaultProfilePic.jpg") {
+                            fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
+                                if (e) {
+                                    console.log(e);
+                                }
+                            })
+                        }
+                        let sqlDeleteUser = "DELETE FROM users WHERE id = ?";
+                        mysql.query(sqlDeleteUser, [userIdToDelete], function (err, result) {
+                            if (err) {
+                                return res.status(500).json(err.message);
+                            };
+                            if (result.affectedRows == 0) {
+                                return res.status(400).json({
+                                    message: "échec suppression"
+                                });
+                            }
+                            res.status(200).json({
+                                message: "Compte utilisateur supprimé !"
+                            });
+                        });
+                    });
                 })
-                .catch(e => res.status(500).json(e));
+                .catch(e => {
+                        res.status(500).json(e)
+                });
+            }   
         });
     }
+    
+    
 
-
+            
 }

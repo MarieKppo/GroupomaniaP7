@@ -204,7 +204,7 @@ export default {
                 if (this.newPassword != this.newPassword2){ // ajouter verif regex
                     alert("Attention, le nouveau mot de passe saisi et sa confirmation ne sont pas identiques !")
                 }
-                if (!verifP.test(this.newPassword)){
+                if (verifP.test(this.newPassword) === false){
                     alert("Votre mot de passe doit contenir au moins : 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.")
                     // console.log("Votre mot de passe doit contenir au moins : 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.")
                 }
@@ -264,7 +264,7 @@ export default {
                 })
                 .catch((err) => {
                     console.log(err)
-                    alert(JSON.stringify(err.response.data))
+                    alert(JSON.stringify(err.response.data.error))
                 });
             }
             

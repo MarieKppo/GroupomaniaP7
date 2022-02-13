@@ -9,7 +9,7 @@
         <form @submit.prevent=connect()>
             <div class="form-group mb-2 d-flex flex-column">
                 <label for="identifiant">
-                <input type="text" id="identifiant" required v-model=" userEmail " placeholder="marc.dupont@groupomania.fr">
+                <input type="text" id="identifiant" class="mb-2" required v-model=" userEmail " placeholder="marc.dupont@groupomania.fr">
                 </label>
 
                 <label>
@@ -20,8 +20,9 @@
                     <b-icon icon="eye-slash-fill" class="eye-slash-fill"></b-icon>
                 </div>
                 </label>
+                <p v-if="noMatch" class="rounded border border-danger px-3 mt-1 text-danger">{{ noMatchMsg }}</p>
+                <button type="submit" class="btn btn-secondary btn-block m-1">Se connecter</button>
             </div>
-            <button type="submit" class="btn btn-secondary btn-block m-1">Se connecter</button>
         </form>
         <!-- boutons de connexion ou création de compte -->
         <router-link to="/signup" class="m-1"><small>Je n'ai pas de compte, je m'inscris</small></router-link>
@@ -45,7 +46,9 @@ export default {
         return {
             userEmail: "",
             userPassword: "",
-            id: ""
+            id: "",
+            noMatch: false,
+            noMatchMsg: ""
         };
     },
     methods: {
@@ -80,8 +83,9 @@ export default {
                 this.$router.push(`/feed`);    
             })
             .catch(err =>{
+                this.noMatch = true;
+                this.noMatchMsg = err.response.data.error;
                 console.log("loupé");
-                console.log(err);
             })
         }
     }

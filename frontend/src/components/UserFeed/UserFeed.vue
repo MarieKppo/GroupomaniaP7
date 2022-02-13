@@ -28,6 +28,9 @@
         </div>
         <div>
             <h5>Publications</h5>
+            <div class="card mb-3">
+                <div class="card-body noPosts"></div>
+            </div>
             <div v-bind:key="date" v-for="(post, date) in posts">
                 <div class="card"> <!-- v-for v-model -->
                     <div class="card-body">
@@ -98,7 +101,10 @@ export default {
                 this.posts = response.data.userFeed;
                 console.log(this.posts);
             })
-            .catch((error) => console.log(error));
+            .catch((error) => {
+                console.log(error)
+                document.querySelector(".noPosts").textContent = error.response.data.message
+                });
     },
     methods: {
         // update props visuel qd sélectionné car v-model ne supporte pas les fichiers
