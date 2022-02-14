@@ -1,6 +1,6 @@
 // modules
 const mysql = require('../Database').connection; //connecion bdd
-const env = require('../environnement'); //créer variables d'environnement
+require('dotenv').config();
 const bcrypt = require('bcrypt'); //hacher le mdp
 const jwt = require('jsonwebtoken'); //token sécu
 const fs = require('fs'); //génère fichier stockés
@@ -9,27 +9,43 @@ const Utils = require('../utils/utils');
 
 //fonction pour créer un compte //testée ok
 exports.signup = (req, res, next) => {
-    bcrypt.hash(req.body.password, 10)
-        .then(hash => {
-            const email = req.body.email;
-            const firstName = req.body.firstName;
-            const lastName = req.body.lastName;
-            const password = hash;
-            const pseudo = req.body.pseudo;
+    if((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/).test(req.body.password) &&
+        (/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).test(req.body.email)) {
+        bcrypt.hash(req.body.password, 10)
+            .then(hash => {
+                const email = req.body.email;
+                const firstName = req.body.firstName;
+                const lastName = req.body.lastName;
+                const password = hash;
+                const pseudo = req.body.pseudo;
 
-            let sqlSignup = "INSERT INTO users (lastName, firstName, email, password, pseudo) VALUES (?, ?, ?, ?, ?)";
-            let values = [lastName, firstName, email, password, pseudo]; // nécessité d'un tableau pour que mysql query boucle sur les données
+                let sqlSignup = "INSERT INTO users (lastName, firstName, email, password, pseudo) VALUES (?, ?, ?, ?, ?)";
+                let values = [lastName, firstName, email, password, pseudo]; // nécessité d'un tableau pour que mysql query boucle sur les données
 
-            mysql.query(sqlSignup, values, function (err, result) {
-                if (err) {
-                    return res.status(500).json(err.message);
-                };
-                res.status(201).json({
-                    message: "Compte créé !"
+                mysql.query(sqlSignup, values, function (err, result) {
+                    let message = "Erreur côté base de données. Veuillez contacter un responsable.";
+                    if (err) {
+                        if(err.code === 'ER_DUP_ENTRY'){
+                            message = "Cette adresse mail est déjà utilisée. Veuillez en choisir une autre pour créer votre compte."
+                        }
+                        return res.status(500).json({err , message});
+                    };
+                    res.status(201).json({
+                        message: "Compte créé !"
+                    });
                 });
-            });
-        })
-        .catch(e => res.status(500).json(e));
+            })
+            .catch(e => res.status(500).json(e));
+    }else {
+        if((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/).test(req.body.password)){
+            return res.status(400).json({
+                message : "Votre mot de passe doit contenir au moins 8 caractères dont au moins 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial."})
+        }
+        if((/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).test(req.body.email)){
+            return res.status(400).json({
+                message : "Votre adresse mail doit correspondre au format \"xxx@xxx.xxx\"."})
+        }
+    }
 }
 
 // fonction pour se connecter //testée ok
@@ -39,7 +55,6 @@ exports.login = (req, res, next) => {
 
     const sqlFindUser = "SELECT * FROM users WHERE email = ?";
     mysql.query(sqlFindUser, email, function (err, result) {
-        // console.log(result);
         if (err) {
             return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
         };
@@ -59,16 +74,10 @@ exports.login = (req, res, next) => {
                     'userId': result[0].id,
                     'isAdmin': !!result[0].isAdmin // transforme le tinyint(1) en true ou false
                 };
-                // console.log(usAd)
                 res.status(200).json({
                     userId: result[0].id,
                     token: jwt.sign(usAd, `${process.env.TOKEN_KEY}`, {expiresIn: "24h"}),
-                    isAdmin: result[0].isAdmin,
-                    // pseudo: result[0].pseudo,
-                    // firstName: result[0].firstName,
-                    // lastName: result[0].lastName,
-                    // email: result[0].email,
-                    // profilePic: result[0].profilePic
+                    isAdmin: result[0].isAdmin
                 })
             })
             .catch(e => res.status(500).json(e));
@@ -96,11 +105,9 @@ exports.getOneUser = (req, res, next) => {
 // fonction de modif du profil à décommenter 
 exports.modifyUserPic = (req, res, next) => {
     const userIdAsked = req.params.id; //id de l'url/route
-
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    console.log("userId : " + userId + " userIdAsked : " + userIdAsked)
     if ((userId != userIdAsked) && (!isAdmin)) {
         return res.status(403).json({
             message: "Vous ne pouvez pas modifier la photo d'un profil qui n'est pas le vôtre."
@@ -204,54 +211,59 @@ exports.modifyUserPassword = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    //ajouter un regex ?
 
     if ((userId != userIdPassword) && (!isAdmin)) {
         return res.status(403).json({
             message: "Vous ne pouvez pas modifier le pseudo d'un profil qui n'est pas le vôtre."
         });
     } else {
-        const sqlFindUser = `SELECT password FROM users WHERE id = ?`;
-        mysql.query(sqlFindUser, [userIdPassword], function (err, result) {
-            if (err) {
-                return res.status(500).json(err.message);
-            }
-            if (result.length == 0) {
-                return res.status(401).json({
-                    error: "Pas d'utilisateur trouvé !"
-                });
-            }
-            const hashedPassword = result[0].password;
-            bcrypt.compare(password, hashedPassword)
-                .then(valid => {
-                    if (!valid) {
-                        return res.status(401).json({
-                            error: "Mot de passe incorrect !"
-                        });
-                    }
-                    if (newPassword) { // si un nouvo mdp donné et mdp original est ok/vérif
-                        bcrypt.hash(newPassword, 10)
-                            .then(hash => {
-                                const sqlChangePassword = `UPDATE users SET password= ? WHERE id = ?`;
-                                mysql.query(sqlChangePassword, [hash, userIdPassword], function (err, result) {
-                                    if (err) {
-                                        return res.status(500).json(err.message);
-                                    }
-                                    if (result.affectedRows == 0) {
-                                        return res.status(400).json({
-                                            message: "Echec du changement de mot de passe"
+        let verifPwd = (/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/).test(newPassword);
+        if(verifPwd){
+            const sqlFindUser = `SELECT password FROM users WHERE id = ?`;
+            mysql.query(sqlFindUser, [userIdPassword], function (err, result) {
+                if (err) {
+                    return res.status(500).json(err.message);
+                }
+                if (result.length == 0) {
+                    return res.status(401).json({
+                        error: "Pas d'utilisateur trouvé !"
+                    });
+                }
+                const hashedPassword = result[0].password;
+                bcrypt.compare(password, hashedPassword)
+                    .then(valid => {
+                        if (!valid) {
+                            return res.status(401).json({
+                                error: "Mot de passe incorrect !"
+                            });
+                        }
+                        if (newPassword) { // si un nouvo mdp donné et mdp original est ok/vérif
+                            bcrypt.hash(newPassword, 10)
+                                .then(hash => {
+                                    const sqlChangePassword = `UPDATE users SET password= ? WHERE id = ?`;
+                                    mysql.query(sqlChangePassword, [hash, userIdPassword], function (err, result) {
+                                        if (err) {
+                                            return res.status(500).json(err.message);
+                                        }
+                                        if (result.affectedRows == 0) {
+                                            return res.status(400).json({
+                                                message: "Echec du changement de mot de passe"
+                                            });
+                                        }
+                                        return res.status(200).json({
+                                            message: "Mot de passe modifié avec succès !"
                                         });
-                                    }
-                                    return res.status(200).json({
-                                        message: "Mot de passe modifié avec succès !"
                                     });
-                                });
-                            })
-                            .catch(e => res.status(500).json(e));
-                    }
-                })
-                .catch(e => res.status(500).json(e));
-        });
+                                })
+                                .catch(e => res.status(500).json(e));
+                        }
+                    })
+                    .catch(e => res.status(500).json(e));
+            });
+        }
+        else{
+            return res.status(400).json({message: "Votre mot de passe doit contenir au moins 8 caractères dont au moins 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial."})
+        }
     }
 }
 
@@ -264,55 +276,13 @@ exports.deleteOneUser = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    console.log(isAdmin)
-    console.log("userid to delete : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
-
+    
     if ((userIdToDelete != userId) && (!isAdmin)) {
         return res.status(403).json({
             message: "Vous n'avez pas les droits nécessaires à la suppression de ce profil."
         });
     } 
-    // else {
-    //     let hashedPassword = "";
-    //     let filename = result[0].profilePic.split("/images/")[1];
-    //     console.log("filename ds req user to delete : " + filename);
-    //     if (userIdToDelete == userId) {
-    //         console.log("je supprime mon profil : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
-    //         let sqlFindUser = "SELECT password, profilePic FROM users WHERE email = ?"; //recup user dans bdd
-    //         mysql.query(sqlFindUser, [email], function (err, result) {
-    //             if (err) {
-    //                 return res.status(500).json(err.message);
-    //             }
-    //             if (result.length == 0) {
-    //                 return res.status(401).json({
-    //                     error: "Utilisateur non trouvé !"
-    //                 });
-    //             }            
-    //             let hashedPassword = result[0].password;
-    //         });
-    //     }
-    //     if (isAdmin){ // userIdToDelete !== userId && 
-    //         console.log("admin supprime un profil (le sien ou pas) : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
-    //         // sql find user userId compare email et email stocké si ok alors set HashedPassword avec password stocké  
-    //         let sqlFindUser = "SELECT password, email FROM users WHERE id = ?"; //recup user dans bdd
-    //         mysql.query(sqlFindUser, [userId], function (err, result) {
-    //             if (err) {
-    //                 return res.status(500).json(err.message);
-    //             }
-    //             if (result.length == 0) {
-    //                 return res.status(401).json({
-    //                     error: "Utilisateur non trouvé !"
-    //                 });
-    //             }
-    //             if (result[0].email == email){
-    //                 let hashedPassword = result[0].password;
-    //             }
-    //         });
-    //     }
-    
-    // }
     if (userIdToDelete == userId) {
-        console.log("je supprime mon profil : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
         let sqlFindUser = "SELECT password, profilePic FROM users WHERE email = ?"; //recup user dans bdd
         mysql.query(sqlFindUser, [email], function (err, result) {
             if (err) {
@@ -332,7 +302,6 @@ exports.deleteOneUser = (req, res, next) => {
                         });
                     }
                     const filename = result[0].profilePic.split("/images/")[1];
-                    console.log("filename ds req user to delete : " + filename);
                     if (filename !== "defaultProfilePic.jpg") {
                         fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
                             if (e) {
@@ -362,10 +331,8 @@ exports.deleteOneUser = (req, res, next) => {
             
         });
     } 
-    if (isAdmin){ // userIdToDelete !== userId && 
-        console.log("admin supprime un profil (le sien ou pas) : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
-        // sql find user userId compare email et email stocké si ok alors set HashedPassword avec password stocké  
-        let sqlFindUser = "SELECT password, email FROM users WHERE id = ?"; //recup user dans bdd
+    if (isAdmin){ 
+        let sqlFindUser = "SELECT password, email FROM users WHERE id = ?"; 
         mysql.query(sqlFindUser, [userId], function (err, result) {
             if (err) {
                 return res.status(500).json(err.message);
@@ -391,7 +358,6 @@ exports.deleteOneUser = (req, res, next) => {
                             return res.status(500).json(err.message)
                         };
                         const filename = result[0].profilePic.split("/images/")[1];
-                        console.log("filename ds req user to delete : " + filename);
                         if (filename !== "defaultProfilePic.jpg") {
                             fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
                                 if (e) {
@@ -420,9 +386,5 @@ exports.deleteOneUser = (req, res, next) => {
                 });
             }   
         });
-    }
-    
-    
-
-            
+    }            
 }

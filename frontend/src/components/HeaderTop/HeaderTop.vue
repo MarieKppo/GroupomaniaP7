@@ -34,4 +34,7 @@ export default {
     width: auto;
     height: 30px!important; 
 }
+a {
+    cursor: pointer;
+}
 </style>

@@ -1,11 +1,9 @@
 <template>
     <div class="container">
         <img class="logo-accueil img-fluid mx-auto" src="../../assets/icon-above-font.png">
-        <h1>Le réseau social de votre entreprise : Groupomania !</h1>
         <!-- formulaire de connexion -->
-        <div>
-            Connexion :
-        </div>
+        <h4 class="text-center">Le réseau social de votre entreprise.</h4><br>
+        <h5 class="mx-3">Connexion :</h5>
         <form @submit.prevent=connect()>
             <div class="form-group mb-2 d-flex flex-column">
                 <label for="identifiant">
@@ -14,7 +12,6 @@
 
                 <label>
                 <input type="password" id="password" required v-model=" userPassword " placeholder="Mot de passe">
-
                 <div class="password-icon" @click="switchVisibility()">
                     <b-icon icon="eye-fill" class="eye-fill"></b-icon>
                     <b-icon icon="eye-slash-fill" class="eye-slash-fill"></b-icon>

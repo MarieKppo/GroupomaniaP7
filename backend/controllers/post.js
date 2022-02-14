@@ -1,6 +1,5 @@
 // modules
 const mysql = require('../Database').connection;
-const bcrypt = require('bcrypt'); //hacher le mdp
 const fs = require("fs"); // Permet de gérer les fichiers stockés
 const Utils = require("../utils/utils"); //importe la fonction pour décoder le token
 

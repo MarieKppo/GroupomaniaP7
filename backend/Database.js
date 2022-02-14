@@ -1,12 +1,14 @@
 // créer objet connexion base de donnée et l'exporter
 const mysql = require('mysql');
-const env = require('./environnement'); //récup variables env
+// const env = require('./environnement'); //récup variables env
+require('dotenv').config()
+// console.log(process.env)
 
 //création connexion
 exports.connection = mysql.createPool({  // stockage de connexion 
   host: "localhost",
-  user:  `${env.groupomaniaId}`,//"root",
-  password: `${env.groupomaniaPW}`,//"", 
+  user:  `${process.env.Groupomania_ID}`,//"root",
+  password: `${process.env.Groupomania_PW}`,//"", 
   database : "groupomania",
   timezone : "local", 
   charset : 'utf8mb4',

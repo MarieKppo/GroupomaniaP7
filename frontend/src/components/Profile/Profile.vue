@@ -10,14 +10,27 @@
                     <h5 class="card-title">{{ userPseudo }}</h5>
                     <p class="card-text">{{ userName }} {{ userLastName }}</p>
                     <div v-if="showUpdate = true" id="showUpdate" class="card-link d-flex justify-content-around flex-wrap" > <!-- boutons de suppression du profil -->
-                        <button role="button" class="btn btn-light mt-1 camera" alt="modifier ma photo de profil" @click="showUpdateOption()"><b-icon icon="camera"></b-icon></button>
                         <button role="button" class="btn btn-light mt-1 pencil" alt="modifier mon mot de passe" @click="showUpdateOption()"><b-icon icon="pencil-square" ></b-icon></button>
+                        <button role="button" class="btn btn-light mt-1 camera" alt="modifier ma photo de profil" @click="showUpdateOption()"><b-icon icon="camera"></b-icon></button>
+                        <button role="button" class="btn btn-light mt-1 lock-fill" alt="modifier mon mot de passe" @click="showUpdateOption()"><b-icon icon="lock-fill" ></b-icon></button>
                         <button role="button" class="btn btn-light mt-1 trash" alt="supprimer mon profil" @click="showUpdateOption()"><b-icon icon="trash-fill"></b-icon></button>
                     </div>
                 </div>
             </div>
         </div>
         <!-- modification profil -->
+        <!-- changement pseudo -->
+        <div id="udpdatePseudo" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePsd"> <!-- faire de cette div un seul block bouton-->
+                <p>Quel est votre nouveau pseudo ?</p>
+            <label>
+                <input type="text" id="newPseudo" name="newPseudo" v-model="newPseudo" placeholder="Votre nouveau pseudo">
+            </label>
+            <label>Confirmer le changement avec votre mot de passe : 
+                <input type="password" required v-model="password" id="password" name="password" placeholder="Votre mot de passe actuel" class="mb-2">
+                <p v-if="checkPseudo" class="rounded border border-danger px-3 mt-1 text-danger">Votre pseudo doit contenir au moins 3 caractères :)</p>
+            </label>
+            <button for="newPseudo" class="btn btn-secondary" @click="updatePseudo()">Modifier mon pseudo</button>
+        </div>
         <!-- changement profilePic -->
         <div id="updatePic" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePic"> <!-- faire de cette div un seul block bouton-->
                 <p>Sélectionnez une nouvelle image (format : jpg, jpeg ou png) : </p>
@@ -48,7 +61,7 @@
                     </label>
                 </label>
             <!-- </label> -->
-            <button for="newPic" class="btn btn-secondary mt-3" @click="updatePassword()">Modifier mot de passe</button>
+            <button for="newPwd" class="btn btn-secondary mt-3" @click="updatePassword()">Modifier mot de passe</button>
         </div>
         <!-- suppression compte -->
         <div id="deleteProfile" class="mt-1 card mb-3 bg-light p-2 rounded border-danger" v-if="deleteProfile"> <!-- faire de cette div un seul block bouton-->
@@ -81,12 +94,15 @@ export default {
             userLastName: "",
             userEmail: "",
             profilePic: "",
+            newPseudo: "",
+            checkPseudo: false,
             newProfilePic: "",
             password: null,
             newPassword: null,
             newPassword2: null,
             token: "",
             showUpdate: false,// vérif si profileId = userId || admin = true et si oui passer variable à true poru montrer bloc modif
+            updatePsd: false,
             updatePic: false,
             updatePwd: false,
             deleteProfile: false
@@ -102,23 +118,50 @@ export default {
             console.log("bouton option de modif cliqué")
             const pic = document.querySelector(".camera");
             const pen = document.querySelector(".pencil");
+            const lockFill = document.querySelector(".lock-fill")
             const trash = document.querySelector(".trash");
             
-            pic.addEventListener("click", () => {
-                this.updatePic = true;
-                this.updatePwd = false;
-                this.deleteProfile = false;
-            });
             pen.addEventListener("click", () => {
-                this.updatePwd = true;
-                this.updatePic = false;
-                this.deleteProfile = false;
+                if(this.updatePsd === true){
+                    this.updatePsd = false
+                }else{
+                    this.updatePsd = true;
+                    this.updatePic = false;
+                    this.updatePwd = false;
+                    this.deleteProfile = false;
+                }
+            });
+            pic.addEventListener("click", () => {
+                if(this.updatePic === true){
+                    this.updatePic = false
+                }else{
+                    this.updatePsd = false;
+                    this.updatePic = true;
+                    this.updatePwd = false;
+                    this.deleteProfile = false;
+                }
+            });
+            lockFill.addEventListener("click", () => {
+                if(this.updatePwd === true) {
+                    this.updatePwd = false;
+                } else {
+                    this.updatePsd = false;
+                    this.updatePwd = true;
+                    this.updatePic = false;
+                    this.deleteProfile = false;
+                }
             });
             trash.addEventListener("click", () => {
-                this.updatePic = false;
-                this.updatePwd = false;
-                this.deleteProfile = true;
+                if(this.deleteProfile === true){
+                    this.deleteProfile = false
+                }else {
+                    this.updatePsd = false;
+                    this.updatePic = false;
+                    this.updatePwd = false;
+                    this.deleteProfile = true;
+                }
             });
+
 
         },
         changeFilePic(e){
@@ -171,6 +214,38 @@ export default {
                 passwordField.type = "password";
             })
         },
+        updatePseudo() {
+            let userData = JSON.parse(localStorage.getItem("connectedUser"));
+            let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);        
+            if ((userData.userId === ProfileId) || userData.isAdmin){
+                if((/^[\w'\-,.0-9_ !¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,30}$/).test(this.newPseudo)){
+                    console.log("modifier le pseudo ok")
+                    if(userData.isAdmin || userData.userId === ProfileId){
+                        axios({
+                            method: 'put',
+                            url: `http://localhost:3000/api/users/pseudo/${ProfileId}`,
+                            data: {
+                                "pseudo": this.newPseudo,
+                                "password": this.password
+                            },
+                            headers: {
+                                Authorization: `Bearer ${userData.token}`
+                            },
+                        }).then(() => {
+                            this.displayUser()
+                        }).catch((err) => {
+                            alert(JSON.stringify(err.response.data.error))
+                        })
+                    }
+                    else {
+                        alert("Vous ne pouvez pas modifier le pseudo d'un de vos collègues !")
+                    }
+                }else {
+                    this.checkPseudo = true
+                }
+            }
+
+        },
         updatePassword(){
             console.log('changer le mdp');
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
@@ -207,9 +282,10 @@ export default {
                     .then((response) => {
                         console.log('mot de passe modifié avec succés');
                         console.log(response)
+                        this.updatePwd = false;
                     })
                     .catch((err) => {
-                        console.log('erreur de modif mdp' + err)
+                        alert(JSON.stringify(err.response.data.message))
                     });
                 }
             }
@@ -305,9 +381,9 @@ export default {
                 // this.userEmail = userInfo.email;
                 this.profilePic = response.data[0].profilePic;
                 if(ProfileId === userData.userId || userData.isAdmin === 1){
-                    console.log("ProfileId : " + ProfileId + " userDataId : " + userData.userId)
-                    console.log("userData Admin : " + userData.isAdmin)
-                    console.log("showUpdate" + this.showUpdate)
+                    // console.log("ProfileId : " + ProfileId + " userDataId : " + userData.userId)
+                    // console.log("userData Admin : " + userData.isAdmin)
+                    // console.log("showUpdate" + this.showUpdate)
                     this.showUpdate = true
                 } else {
                     this.showUpdate = false

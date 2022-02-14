@@ -142,6 +142,7 @@ export default {
                     document.querySelector("#textContent").value = null;
                     document.querySelector("#visualContent").value = null;
                     this.displayAllUserPosts();
+                    window.location.reload()
                 })
                 .catch((error) => {
                     console.log(error);
@@ -183,7 +184,8 @@ export default {
                         }
                     })   
                     .then(() => {
-                        this.displayAllUserPosts();
+                        // this.displayAllUserPosts();
+                        window.location.reload()
                     })
                     .catch((error) => console.log(error));
             }
