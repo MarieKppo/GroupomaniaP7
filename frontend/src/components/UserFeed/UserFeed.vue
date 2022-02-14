@@ -26,10 +26,9 @@
                 <button type="submit" class="btn btn-secondary mt-1">Publier</button> <!-- v-if="textContent != null || visualContent != null" -->
             </form>
         </div>
-        <div>
+        <div class="my-3 bg-light p-2 rounded">
             <h5>Publications</h5>
-            <div class="card mb-3">
-                <div class="card-body noPosts"></div>
+            <div class="card noPosts mb-3"> 
             </div>
             <div v-bind:key="date" v-for="(post, date) in posts">
                 <div class="card"> <!-- v-for v-model -->
@@ -37,7 +36,7 @@
                         <!-- info utilisateur et options suppr -->
                         <div class="card-title d-flex justify-content-between">
                             <div class="d-flex">
-                                <img class="profilePic" v-if="post.profilePic" v-bind:src="post.profilePic"> <!-- ajouter la miniature profilePic -->
+                                <img class="profilePicU" v-if="post.profilePic" v-bind:src="post.profilePic" v-bind:alt="`Photo de profil de ${post.pseudo}`"> 
                                 <p class="card-title p-2 font-weight-bold">{{ post.pseudo }}</p>
                                 <p class="card-title p-2" v-if="post.pseudo === null">{{ post.firstName }} {{ post.lastName }}</p>
                             </div>
@@ -52,7 +51,7 @@
                             <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
                             <div class="postOptions">
                                 <button class="card-link btn btn-secondary"  @click="sharePost(post.postId)" role="button">Partager</button> 
-                                <button class="card-link btn btn-secondary" role="button">Commenter</button>
+                                <!-- <button class="card-link btn btn-secondary" role="button">Commenter</button> -->
                             </div>
                         </div>
                     </div>
@@ -103,7 +102,7 @@ export default {
             })
             .catch((error) => {
                 console.log(error)
-                document.querySelector(".noPosts").textContent = error.response.data.message
+                document.querySelector(".noPosts").innerHTML = `<div class="card-body">${error.response.data.message}</div>`
                 });
     },
     methods: {
@@ -117,7 +116,7 @@ export default {
             console.log('dans userFeed pour publier //  token : '+ userData.token)
             console.log('textContent '+ this.textContent)
             console.log('visualContent ')
-            console.log( this.visualContent)
+            console.log(this.visualContent)
 
             const formData = new FormData(); //créer paire clé/valeur pour req
             formData.append("textContent", this.textContent);
@@ -140,7 +139,8 @@ export default {
                     console.log(reponse);
                     this.textContent = null,
                     this.visualContent = null,
-                    document.querySelector("#textContent").value = null
+                    document.querySelector("#textContent").value = null;
+                    document.querySelector("#visualContent").value = null;
                     this.displayAllUserPosts();
                 })
                 .catch((error) => {
@@ -153,8 +153,7 @@ export default {
         //partager un post A REVOIR PASSE PAS L'AUTH !!!
         sharePost(postId) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
-            this.token = userData.token;
-            console.log('dans la fonction share post vue postId : '+ postId + ' token : '+ this.token);
+            // console.log('dans la fonction share post vue postId : '+ postId + ' token : '+ this.token);
 
             if (confirm("Voulez vous vraiment partager ce post ?")) {
                 axios({
@@ -164,8 +163,9 @@ export default {
                         Authorization: `Bearer ${userData.token}`
                     },
                     })
-                    .then(() => {
-                        this.displayAllUserPosts();
+                    .then((response) => {
+                        // this.displayAllUserPosts();
+                        console.log(response)
                     })
                     .catch((error) => console.log(error));
             }
@@ -221,7 +221,7 @@ export default {
                 this.posts = response.data.userFeed;
                 })
                 .catch((error) => console.log(error));
-        },
+        }
 
     }
 
@@ -229,7 +229,7 @@ export default {
 </script>
 
 <style>
-.profilePic{
+.profilePicU{
     display: inline-block;
     width: 50px;
     height: 50px;

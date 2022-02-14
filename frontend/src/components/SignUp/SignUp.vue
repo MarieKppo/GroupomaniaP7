@@ -127,15 +127,13 @@ export default {
                 })
                 .catch((error) =>{ 
                     console.log(error);
-                    return error;
+                    // return error;
                 })
             }
             else {
                 console.log('remplir correctement tous les champs')
                 confirm("Pour pouvoir valider votre inscription, tous les champs requis doivent être complétés correctement.")
             }
-
-
         }
     }
 }

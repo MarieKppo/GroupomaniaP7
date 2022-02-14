@@ -46,7 +46,7 @@ export default {
         return {
             userEmail: "",
             userPassword: "",
-            id: "",
+            userId: "",
             noMatch: false,
             noMatchMsg: ""
         };
@@ -87,6 +87,12 @@ export default {
                 this.noMatchMsg = err.response.data.error;
                 console.log("loupé");
             })
+        }
+    },
+    mounted(){
+        if(localStorage.getItem("connectedUser") !== null){
+            console.log(localStorage.getItem("connectedUser"))
+            this.$router.push(`/feed`)
         }
     }
 }

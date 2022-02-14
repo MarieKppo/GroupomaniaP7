@@ -221,37 +221,33 @@ exports.deleteOnePost = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    console.log('userId : ' + userId + " isAdmin : " + isAdmin + " postId " + postId)
+    // console.log('userId : ' + userId + " isAdmin : " + isAdmin + " postId " + postId)
     let sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
-    let sqlDeletePost;
+    let sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
     mysql.query(sqlSelectPost, [postId], function (err, result) {
         if (result.length == 0) {
             return res.status(400).json({
                 message: "Pas de publication à cette adresse."
             });
         };
-        if (userId === result[0].id_user || isAdmin) {
-            console.log("l'utilisateur peut supprimer ce post");
-            console.log(result[0])
-            if (err) {
-                return res.status(500).json(err.message);
-            };
+        if(userId !== result[0].id_user && isAdmin === false){
+            return res.status(403).json({
+                message: "vous ne pouvez pas supprimer un post dont vous n'êtes pas l'auteur, sans être admin."
+            });
+        }
+        else {        
             if (result[0].visualContent !== null) { //if req.file : suppression image et ensuite mysql.query
                 const filename = result[0].visualContent.split("/fichiers/")[1];
-                console.log(filename);
+                // console.log(filename);
                 fs.unlink(`fichiers/${filename}`, (err => {
                     if (err) {
                         return res.status(500).json(err.message);
                     };
-                    console.log("fichier suppr");
+                    // console.log("fichier suppr");
                 }));
-                sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?"
-            } else {
-                console.log('pas de fichier ')
-                sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
             }
-            console.log('elmt pr requete suppr post userId : ' + userId + ' postId : '+postId)
-            mysql.query(sqlDeletePost, [userId, postId], function (err, result) {
+            // console.log('elmt pr requete suppr post userId : ' + userId + " result[0].id_user " + result[0].id_user + ' postId : '+postId)
+            mysql.query(sqlDeletePost, [result[0].id_user, postId], function (err, result) {
                 if (err) {
                     console.log("l'erreur est ici" + err)
                     return res.status(500).json(err.message);
@@ -260,11 +256,7 @@ exports.deleteOnePost = (req, res, next) => {
                     message: "Publication supprimée !"
                 });
             });
-        } else {
-            return res.status(403).json({
-                message: "vous ne pouvez pas supprimer un post dont vous n'êtes pas l'auteur"
-            });
-        }
+        } 
     });
 }
 

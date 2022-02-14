@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <h1>Profil de {{ userName }}</h1>
+    <div class="UserProfile">
+        <h1 class="mt-3">Profil de {{ userName }}</h1>
         <!--carte profil-->
         <div class="d-inline-flex" id="profileId"> <!-- changer css d-sm-block -->
             <img id="profilePic" class="card-img" v-if="profilePic" v-bind:src="profilePic" :alt="`photo de profil de ` + userPseudo">
@@ -9,11 +9,10 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ userPseudo }}</h5>
                     <p class="card-text">{{ userName }} {{ userLastName }}</p>
-                    <!-- <p v-if="userEmail" :href="`mailto:` + userEmail" class="btn btn-secondary w-100 mb-2" role="button">Contacter </p> -->
-                    <div v-if="showUpdate = true" id="showUpdate" class="card-link d-flex flex-row" > <!-- boutons de suppression du profil -->
-                        <b-icon role="button" class="btn btn-light w-25 mx-auto camera" alt="modifier ma photo de profil" @click="showUpdateOption()" icon="camera-fill" font-scale="2"></b-icon>
-                        <b-icon role="button" class="btn btn-light w-25 mx-auto pencil" alt="modifier mon mot de passe" @click="showUpdateOption()" icon="pencil-square" font-scale="2"></b-icon>
-                        <b-icon role="button" class="btn btn-light w-25 mx-auto trash" alt="supprimer mon profil" @click="showUpdateOption()" icon="trash-fill" font-scale="2"></b-icon>
+                    <div v-if="showUpdate = true" id="showUpdate" class="card-link d-flex justify-content-around flex-wrap" > <!-- boutons de suppression du profil -->
+                        <button role="button" class="btn btn-light mt-1 camera" alt="modifier ma photo de profil" @click="showUpdateOption()"><b-icon icon="camera"></b-icon></button>
+                        <button role="button" class="btn btn-light mt-1 pencil" alt="modifier mon mot de passe" @click="showUpdateOption()"><b-icon icon="pencil-square" ></b-icon></button>
+                        <button role="button" class="btn btn-light mt-1 trash" alt="supprimer mon profil" @click="showUpdateOption()"><b-icon icon="trash-fill"></b-icon></button>
                     </div>
                 </div>
             </div>
@@ -33,26 +32,18 @@
             <label>
                 <label>Renseignez votre mot de passe actuel : 
                     <input type="password" required v-model="password" id="password" name="password" placeholder="Votre mot de passe actuel" class="mb-2">
-                    <div class="password-icon" @click="switchVisibility()">
-                        <b-icon icon="eye-fill" class="eye-fill eye1"></b-icon>
-                        <b-icon icon="eye-slash-fill" class="eye-slash-fill eyeoff1"></b-icon>
-                    </div>
                 </label>
                 <!-- <label for="newPassword"> -->
                     <label>Saisissez votre mot nouveau mot de passe : 
                         <input type="password" required  v-model="newPassword" id="newPassword" name="newPassword" placeholder="Votre nouveau mot de passe">
-                        <div class="password-icon" @click="switchVisibility()">
-                            <b-icon icon="eye-fill" class="eye-fill eye2"></b-icon>
-                            <b-icon icon="eye-slash-fill" class="eye-slash-fill eyeoff2"></b-icon>
-                        </div>
                         <!-- <p v-if="newPassword!==verifP" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p> -->
                     </label>
                     <label>Confirmer votre nouveau mot de passe :                
-                        <input type="password" required v-model="newPassword2" id="newPassword2" name="newPassword2" placeholder="Confirmez votre nouveau mot de passe">
-                        <div class="password-icon" @click="switchVisibility()">
-                            <b-icon icon="eye-fill" class="eye-fill eye3"></b-icon>
-                            <b-icon icon="eye-slash-fill" class="eye-slash-fill eye3"></b-icon>
-                        </div>
+                        <input type="password" required v-model="newPassword2" id="newPassword2" name="newPassword2" placeholder="Confirmez votre nouveau mot de passe" class="mb-2">
+                        <button class="password-icon" @click="switchVisibility()">
+                            <b-icon icon="eye-fill" class="eye-fill eye"></b-icon>
+                            <b-icon icon="eye-slash-fill" class="eye-slash-fill eyeoff"></b-icon>
+                        </button>
                         <p v-if="newPassword!==newPassword2" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p>
                     </label>
                 </label>
@@ -94,7 +85,6 @@ export default {
             password: null,
             newPassword: null,
             newPassword2: null,
-            // verifP = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"),
             token: "",
             showUpdate: false,// vérif si profileId = userId || admin = true et si oui passer variable à true poru montrer bloc modif
             updatePic: false,
@@ -163,31 +153,24 @@ export default {
                 console.log(err)
             });
         },
-        // switchVisibility() { // changer la visibilité du mdp pour contrôler ce qui est saisi 
-        //     const eye = document.querySelector(".eye-fill");
-        //     const eyeoff = document.querySelector(".eye-fill-slash");
-        //     // const eye1 = document.querySelector(".eye1");
-        //     // const eye2 = document.querySelector(".eye2");
-        //     // const eye3 = document.querySelector(".eye3");
-        //     // const eyeoff1 = document.querySelector(".eyeoff1");
-        //     // const eyeoff2 = document.querySelector(".eyeoff2");
-        //     // const eyeoff3 = document.querySelector(".eyeoff3");
-        //     const passwordField = document.querySelector("input[type=password]");
-        //     // const newPasswordField = document.querySelector("input[name=newPassword]");
-        //     // const newPasswordField2 = document.querySelector("input[name=newPassword2]");
+        switchVisibility() { // changer la visibilité du mdp pour contrôler ce qui est saisi 
+            const eye = document.querySelector(".eye");
+            const eyeoff = document.querySelector(".eyeoff");
+            const passwordField = document.querySelector("#newPassword2");
             
-        //     eye.addEventListener("click", () => {
-        //         eye.style.display = "none";
-        //         eyeoff.style.display = "block";
-        //         passwordField.type = "text";
-        //     });
+            // password field
+            eye.addEventListener("click", () => {
+                eye.style.display = "none";
+                eyeoff.style.display = "block";
+                passwordField.type = "text";
+            });
 
-        //     eyeoff.addEventListener("click", () => {
-        //         eyeoff.style.display = "none";
-        //         eye.style.display = "block";
-        //         passwordField.type = "password";
-        //     });
-        // },
+            eyeoff.addEventListener("click", () => {
+                eyeoff.style.display = "none";
+                eye.style.display = "block";
+                passwordField.type = "password";
+            })
+        },
         updatePassword(){
             console.log('changer le mdp');
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
@@ -260,7 +243,12 @@ export default {
                 .then((response) => {
                     console.log('compte supprimé avec succés');
                     console.log(response);
-                    this.$router.push('/');
+                    if(userData.isAdmin === 1) {
+                        this.$router.push('/feed');
+                    }
+                    else {
+                        this.$router.push('/');
+                    }
                 })
                 .catch((err) => {
                     console.log(err)
@@ -301,9 +289,7 @@ export default {
     },
     mounted() {
         let userData = JSON.parse(localStorage.getItem("connectedUser"));
-        //récup id de l'url
         let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
-        // console.log(ProfileId);
 
         axios
             .get(`http://localhost:3000/api/users/profile/${ProfileId}`, {
@@ -312,14 +298,12 @@ export default {
                 }
             })
             .then((response) => {
-                console.log("reponse de get user id from url")
-                let userInfo = response.data[0]
-                console.log(userInfo)
-                this.userPseudo = userInfo.pseudo;
-                this.userName = userInfo.firstName;
-                this.userLastName = userInfo.lastName;
+                // console.log("reponse de get user id from url")
+                this.userPseudo = response.data[0].pseudo;
+                this.userName = response.data[0].firstName;
+                this.userLastName = response.data[0].lastName;
                 // this.userEmail = userInfo.email;
-                this.profilePic = userInfo.profilePic;
+                this.profilePic = response.data[0].profilePic;
                 if(ProfileId === userData.userId || userData.isAdmin === 1){
                     console.log("ProfileId : " + ProfileId + " userDataId : " + userData.userId)
                     console.log("userData Admin : " + userData.isAdmin)
@@ -330,8 +314,9 @@ export default {
                 }
             })
             .catch((err) => {
-                console.log("l'erreur du get profile id est ici")
-                console.log(err)
+                // console.log("l'erreur du get profile id est ici")
+                console.log(err.response.data.message)
+                this.$router.push(`/notFound`);
             });
     }
 }
@@ -348,5 +333,30 @@ export default {
     /* border-radius: 50%; */
     border: 1px solid grey;
     object-fit: cover;
+}
+
+label {
+    position: relative;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    /* transition: all 0.2s; */
+    width: 100%;
+}
+label .password-icon {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    /* transform: translateY(-50%); */
+    width: 30px;
+    border: none;
+    background: transparent;
+}
+label .password-icon:hover {
+    cursor: pointer;
+}
+label .password-icon .eye-slash-fill {
+    display: none;
 }
 </style>

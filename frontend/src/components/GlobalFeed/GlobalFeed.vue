@@ -1,5 +1,12 @@
 <template>
-    <div> 
+    <div>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="text-center my-2 card-title">Bienvenu sur le fil de publications des membres de Groupomania</h5>
+                <p class="text-center my-2card-text">Vous pouvez écrire des articles et les partager avec les autres membres de la communauté ! <br>
+                Veuillez à respecter le réglement de l'entreprise et à faire preuve de bienveillance les uns envers les autres.</p>
+            </div>
+        </div>
         <!-- publier du contenu    -->
         <div class="my-3 bg-light p-2 rounded">
             <!-- <div class="d-flex justify-content-between align-items-center"> -->
@@ -32,40 +39,37 @@
 
         </div>
         <!-- Afficher les publications -->
-        <div>
-            <h5>Fil de publications</h5>
-                <div v-bind:key="date" v-for="(post, date) in posts">
-                <div class="card" v-if="posts.length < 1">
-                    <div class="card-body">
-                        Il n'y a pas de publications à afficher. Rédigez la première !
-                    </div>
-                </div>
-                <div class="card"> <!-- v-for v-model -->
-                    <div class="card-body">
-                        <!-- info utilisateur et options suppr -->
-                        <div class="card-title d-flex justify-content-between">
-                            <div class="d-flex">
-                                <img class="profilePic" v-if="post.profilePic" v-bind:src="post.profilePic"> <!-- ajouter la miniature profilePic -->
-                                <p class="card-title p-2 font-weight-bold">{{ post.pseudo }}</p>
-                                <p class="card-title p-2" v-if="post.pseudo === null">{{ post.firstName }} {{ post.lastName }}</p>
-                            </div>
-                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
-                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
-                        </div> 
-                        <!-- contenu publication -->
-                        <p class="card-text">{{ post.content }}</p>
-                        <img class="card-img mb-2" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
-                        <!-- info publication et options interactions -->
-                        <div class="d-flex justify-content-between">
-                            <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
-                            <div class="postOptions">
-                                <button class="card-link btn btn-secondary"  @click="sharePost(post.postId)" role="button">Partager</button> 
-                                <button class="card-link btn btn-secondary" role="button">Commenter</button>
-                            </div>
+        <div class="my-3 bg-light p-2 rounded">
+            <h5 class="px-2">Fil de publications</h5>
+                    <div class="card" v-if="posts.length < 1">
+                        <div class="card-body">
+                            Il n'y a pas de publications à afficher. Rédigez la première !
                         </div>
                     </div>
-                </div>
-                <br>
+                <div v-bind:key="date" v-for="(post, date) in posts" class="card my-3 mx-1" name="publication"> <!-- class="p-2" -->
+                        <div class="card-body">
+                            <!-- info utilisateur et options suppr -->
+                            <div class="card-title d-flex justify-content-between">
+                                <div class="d-flex">
+                                    <img class="profilePic" v-if="post.profilePic" v-bind:src="post.profilePic" v-bind:alt="`Photo de profil de ${post.pseudo}`" @click="showUserProfile(post.userId)"> <!-- ajouter la miniature profilePic -->
+                                    <p class="card-title p-2 font-weight-bold">{{ post.pseudo }}</p>
+                                    <p class="card-title p-2" v-if="post.pseudo === null">{{ post.firstName }} {{ post.lastName }}</p>
+                                </div>
+                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
+                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
+                            </div> 
+                            <!-- contenu publication -->
+                            <p class="card-text">{{ post.content }}</p>
+                            <img class="card-img mb-2" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
+                            <!-- info publication et options interactions -->
+                            <div class="d-flex justify-content-between">
+                                <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
+                                <div class="postOptions">
+                                    <button name="partager" alt="Partager ce contenu sur mon profil" class="card-link btn btn-secondary" @click="sharePost(post.postId)" role="button">Partager</button> 
+                                    <!-- <button name="commenter" class="card-link btn btn-secondary" role="button">Commentaires</button> -->
+                                </div>
+                            </div>
+                        </div>
                 </div> 
 
         </div>
@@ -115,16 +119,16 @@ export default {
         // créer une publication
         createPost(){
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
-            // console.log('dans la fonction publier vue postId //  token : '+ userData.token)
-            // console.log('textContent '+ this.textContent)
-            // console.log('visualContent ')
-            // console.log( this.visualContent)
+            console.log('dans la fonction publier vue postId //  token : '+ userData.token)
+            console.log('textContent '+ this.textContent)
+            console.log('visualContent ')
+            console.log( this.visualContent)
 
             const formData = new FormData(); //créer paire clé/valeur pour req
             formData.append("textContent", this.textContent);
             formData.append("visualContent", this.visualContent);
 
-            if (this.textContent === null && this.visualContent === null) {
+            if ((this.textContent === null || this.textContent === " ") && this.visualContent === null) {
                 (alert("Vous ne pouvez pas partager du vide"));
             } else {
                 axios({
@@ -141,7 +145,8 @@ export default {
                     console.log(reponse);
                     this.textContent = null,
                     this.visualContent = null,
-                    document.querySelector("#textContent").value = null
+                    document.querySelector("#textContent").value = null;
+                    document.querySelector("#visualContent").value = null;
                     this.displayAllPosts();
                 })
                 .catch((error) => {
@@ -225,6 +230,9 @@ export default {
                 })
                 .catch((error) => console.log(error));
         },
+        showUserProfile(id){
+            this.$router.push(`/profile/${id}`)
+        }
 
     }
 
@@ -239,6 +247,7 @@ export default {
     border-radius: 50%;
     border: 1px solid grey;
     object-fit: cover;
+    cursor: pointer;
 }
 
 </style>

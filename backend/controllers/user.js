@@ -272,6 +272,45 @@ exports.deleteOneUser = (req, res, next) => {
             message: "Vous n'avez pas les droits nécessaires à la suppression de ce profil."
         });
     } 
+    // else {
+    //     let hashedPassword = "";
+    //     let filename = result[0].profilePic.split("/images/")[1];
+    //     console.log("filename ds req user to delete : " + filename);
+    //     if (userIdToDelete == userId) {
+    //         console.log("je supprime mon profil : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
+    //         let sqlFindUser = "SELECT password, profilePic FROM users WHERE email = ?"; //recup user dans bdd
+    //         mysql.query(sqlFindUser, [email], function (err, result) {
+    //             if (err) {
+    //                 return res.status(500).json(err.message);
+    //             }
+    //             if (result.length == 0) {
+    //                 return res.status(401).json({
+    //                     error: "Utilisateur non trouvé !"
+    //                 });
+    //             }            
+    //             let hashedPassword = result[0].password;
+    //         });
+    //     }
+    //     if (isAdmin){ // userIdToDelete !== userId && 
+    //         console.log("admin supprime un profil (le sien ou pas) : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
+    //         // sql find user userId compare email et email stocké si ok alors set HashedPassword avec password stocké  
+    //         let sqlFindUser = "SELECT password, email FROM users WHERE id = ?"; //recup user dans bdd
+    //         mysql.query(sqlFindUser, [userId], function (err, result) {
+    //             if (err) {
+    //                 return res.status(500).json(err.message);
+    //             }
+    //             if (result.length == 0) {
+    //                 return res.status(401).json({
+    //                     error: "Utilisateur non trouvé !"
+    //                 });
+    //             }
+    //             if (result[0].email == email){
+    //                 let hashedPassword = result[0].password;
+    //             }
+    //         });
+    //     }
+    
+    // }
     if (userIdToDelete == userId) {
         console.log("je supprime mon profil : " + userIdToDelete + " userId : " + userId + " isadmin : "+ isAdmin)
         let sqlFindUser = "SELECT password, profilePic FROM users WHERE email = ?"; //recup user dans bdd
