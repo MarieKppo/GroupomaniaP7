@@ -13,35 +13,42 @@
             <!-- formulaire de connexion -->
             <form class="form-control" @submit.prevent=signUp()>
                 <div class="form-group mb-2 mx-auto d-flex flex-column">
-                    <label for="identifiant">Mon pseudo : 
-                        <input type="text" id="pseudo" v-model="pseudo" class=""  placeholder="Votre pseudo doit contenir au moins 3 caractères. Ex : L3o ">
-                        <p v-if="checkPseudo" class="rounded border border-danger px-3 mt-1 text-danger">
+                    <label for="identifiant">
+                        <input type="text" id="pseudo" v-model="pseudo" class=""  placeholder="Mon pseudo - ex : L3o ">
+                        <p v-if="noMatchPseudo" class="rounded border border-danger px-3 mt-1 text-danger">
                             Votre pseudo doit contenir au moins 3 caratères (lettres, chiffres et caractères spéciaux).</p>
                     </label>
 
-                    <label for="lastName">Mon nom* : 
-                        <input type="text" id="lastName" v-model="lastName" class="" required placeholder="Dupont">
-                        <p v-if="checkLName" class="rounded border border-danger px-3 mt-1 text-danger">
+                    <label for="lastName">
+                        <input type="text" id="lastName" v-model.lazy="lastName" class="" required placeholder="Mon nom* - ex : Dupont">
+                        <p v-if="noMatchLName" class="rounded border border-danger px-3 mt-1 text-danger">
                             Votre nom doit contenir au moins 2 lettres ou caractères spéciaux</p>
                     </label>
 
-                    <label for="firstName">Mon prénom* : 
-                        <input type="text" id="firstName" v-model="firstName" class="" required placeholder="Paul">
-                        <p v-if="checkFName" class="rounded border border-danger px-3 mt-1 text-danger">
+                    <label for="firstName"> 
+                        <input type="text" id="firstName" v-model="firstName" class="" required placeholder="Mon prénom* - ex : Paul">
+                        <p v-if="noMatchFName" class="rounded border border-danger px-3 mt-1 text-danger">
                             Votre prenom doit contenir au moins 2 lettres ou caractères spéciaux</p>
                     </label>
 
-                    <label for="email">Mon email* : 
-                        <input type="text" id="email" v-model="email" class="" placeholder="pauldupont@groupomania.fr">
-                        <p v-if="checkEmail" class="rounded border border-danger px-3 mt-1 text-danger">test {{  }}</p>
+                    <label for="email">
+                        <input type="text" id="email" v-model="email" class="" placeholder="Mon email* - ex : pauldupont@groupomania.fr">
+                        <p v-if="noMatchEmail" class="rounded border border-danger px-3 mt-1 text-danger">test {{  }}</p>
                     </label>
 
-                    <label for="password">Mon mot de passe* : 
-                        <input type="password" id="password" v-model="password" placeholder="m0td&pass3!" class="">
-                        <p v-if="checkPwd" class="rounded border border-danger px-3 mt-1 text-danger">Votre mot de passe doit contenir au moins 8 caractères dont au moins 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial.</p>
-                        <input type="password" id="confirmPwd" v-model="confirmPwd" placeholder="Confirmer votre mot de passe">
-                        <p v-if="noMatchingPwd" class="rounded border border-danger px-3 mt-1 text-danger">Vérifiez la correspondance des 2 mots de passe saisis.</p>
+                    <label for="password">
+                        <input type="password" id="password" v-model="password" placeholder="Mon mot de passe* - ex : m0td&pass3!">
+                        <switch-v-1/>
                     </label>
+                        <p v-if="noMatchPwd" class="rounded border border-danger px-3 mt-1 text-danger">Votre mot de passe doit contenir au moins 8 caractères dont au moins 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial.</p>
+                    <label>
+                        <input type="password" id="confirmPwd" v-model="confirmPwd" placeholder="Confirmer votre mot de passe">
+                        <div class="password-icon" @click="switchVisibility()">
+                            <b-icon icon="eye-fill" class="eye-fillx"></b-icon>
+                            <b-icon icon="eye-slash-fill" class="eye-slash-fillx"></b-icon>
+                        </div>
+                    </label>
+                        <p v-if="noMatchingPwd" class="rounded border border-danger px-3 mt-1 text-danger">Vérifiez la correspondance des 2 mots de passe saisis.</p>
                     <small>* : champs obligatoires</small>
                 <button type="submit" class="btn btn-secondary btn-block m-1">Créer un compte</button>
                 </div>
@@ -57,7 +64,7 @@
 
 <script lang="ts">
 import axios from 'axios'
-
+import switchVisibility1 from '../switchVisibility1.vue'
 export default {
     name: 'SignUp',
     data(){
@@ -69,51 +76,86 @@ export default {
             email: "",
             password:"",
             confirmPwd:"",
-            checkPseudo: false,
-            checkLName: false,
-            checkFName: false,
-            checkEmail: false,
-            checkPwd: false,
+            noMatchPseudo: false,
+            noMatchLName: false,
+            noMatchFName: false,
+            noMatchEmail: false,
+            noMatchPwd: false,
             noMatchingPwd: false
         }
     },
+    components:{
+        'switchV1': switchVisibility1
+    },
     methods:{
+        // switchVisibility() { // changer la visibilité du mdp pour contrôler ce qui est saisi 
+        //     const eyex = document.querySelector(".eye-fillx");
+        //     const eyeoffx = document.querySelector(".eye-slash-fillx");
+        //     const passwordField = document.querySelector("input[id=confirmPwd]");
+            
+        //     eyex.addEventListener("click", () => {
+        //         eyex.style.display = "none";
+        //         eyeoffx.style.display = "block";
+        //         passwordField.type = "text";
+        //     });
+
+        //     eyeoffx.addEventListener("click", () => {
+        //         eyex.style.display = "block";
+        //         eyeoffx.style.display = "none";
+        //         passwordField.type = "password";
+        //     });
+        // },
         InputChecking(){
+            //aurait pu être fait avec eventListener change
             // Regex 
             let verifPseudo = /^[\w'\-,.0-9_!¡?#ˆ&*()][^÷¿/\\+=@$%{}|~<>;:[\]]{2,}$/;
             let verifName = /^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/;
             let verifEmail = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
             let verifPwd = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
             if((this.pseudo != "") && (verifPseudo.test(this.pseudo) === false)){
-                console.log('verif pseudo : ' + verifPseudo.test(this.pseudo))
-                console.log(this.pseudo)
-                this.checkPseudo = true
+                this.noMatchPseudo = true
+            }else{
+                this.noMatchPseudo = false
             }
             if(verifName.test(this.firstName) === false){
-                this.checkFName = true;
+                this.noMatchFName = true;
+            }else{
+                this.noMatchFName = false
             }
             if(verifName.test(this.lastName) === false){
-                this.checkLName = true;
+                this.noMatchLName = true;
+            }else{
+                this.noMatchLName = false
             }
             if(verifEmail.test(this.email) === false){
-                this.checkEmail= true;
+                console.log("input checking")
+                console.log(this.email)
+                console.log("this.checkemail before change : " + this.noMatchEmail)
+                this.noMatchEmail= true;
+                console.log("this.checkemail after change : " + this.noMatchEmail)
+            }else{
+                this.noMatchEmail = false
             }
             if(verifPwd.test(this.password) === false){
-                this.checkPwd= true;
+                this.noMatchPwd= true;
+            }else{
+                this.noMatchPwd = false
             }
             if(this.password !== this.confirmPwd){
                 this.noMatchingPwd = true;
+            }else{
+                this.noMatchingPwd = false
             }
         },
         signUp(){
             this.InputChecking();
-            console.log(this.email)
+            console.log("signup fonction")
             
-            if (this.checkPseudo === false &&
-                this.checkFName === false &&
-                this.checkLName === false &&
-                this.checkEmail === false &&
-                this.checkPwd === false &&
+            if (this.noMatchPseudo === false &&
+                this.noMatchFName === false &&
+                this.noMatchLName === false &&
+                this.noMatchEmail === false &&
+                this.noMatchPwd === false &&
                 this.noMatchingPwd === false) {
                 console.log("on peut envoyer les données dans l'api")
 
@@ -148,7 +190,11 @@ export default {
 }
 </script>
 
-<style scoped> 
-/* src="./style.css"> */
-    
+<style> 
+label .password-icon .eye-slash-fillx  {
+  display: none;
+}
+label .password-icon .eye-fillx  {
+  display: block;
+}
 </style>

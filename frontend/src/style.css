@@ -1,53 +1,102 @@
 #app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    /* text-align: center; */
-    /* color: #2c3e50;
-    margin-top: 60px; */
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #162847;
+
 }
+
 .container {
-  width: 600px!important;
+  max-width: 600px !important;
+  /* background-color: #d0555d; */
 }
-
-/* @media (min-width: 992px) {
-    .container{
-        width: 720px!important;
-    }
-} */
-
-.logo-accueil{
-    max-width : 500px;
-    max-height: auto;
-    display: block;
+.logo-accueil {
+  max-width: 500px;
+  max-height: auto;
+  display: block;
 }
 
 /* css input connexion */
+
 label {
-    position: relative;
-  }
-  
-  label input {
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    /* transition: all 0.2s; */
-    width: 100%;
-  }
-  label .password-icon {
-    display: flex;
-    align-items: center;
-    position: absolute;
-    top: 50%;
-    right: 20px;
-    transform: translateY(-50%);
-    width: 20px;
-    /* transition: all 0.2s; */
-  }
-  label .password-icon:hover {
-    cursor: pointer;
-    /* color: grey; */
-  }
-  
-  label .password-icon .eye-slash-fill {
-    display: none;
-  }
+  display: flex;
+  justify-content: center;
+  position: relative;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  /* transition: all 0.2s; */
+  width: 100%;
+}
+
+label input {
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  /* transition: all 0.2s; */
+  width: 100%;
+}
+
+label .password-icon {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 20px;
+  /* transition: all 0.2s; */
+}
+
+label .password-icon:hover {
+  cursor: pointer;
+  /* color: grey; */
+}
+
+label .password-icon .eye-slash-fill {
+  display: none;
+}
+label .password-icon .eye-fill {
+  display: block;
+}
+.profilePicU {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid grey;
+  object-fit: cover;
+}
+#profileId {
+  width: 100%;
+}
+#profilePic {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  /* border-radius: 50%; */
+  border: 1px solid grey;
+  object-fit: cover;
+}
+
+.logo{
+  width: auto;
+  height: 30px!important; 
+}
+a {
+  cursor: pointer;
+ }
+ .menu {
+  display: inline-block;
+  border: solid 1px;
+  border-radius: 5px;
+  padding: 5px;
+  color: white!important;
+  text-decoration: none!important;
+  background-color: #162847!important;
+}
+.btn {
+  background-color: #d0555d!important;
+  color: white!important;
+}
+.bg-blue {
+  background-color: #162847!important;
+}

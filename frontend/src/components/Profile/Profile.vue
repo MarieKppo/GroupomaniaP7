@@ -9,7 +9,7 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ userPseudo }}</h5>
                     <p class="card-text">{{ userName }} {{ userLastName }}</p>
-                    <div v-if="showUpdate = true" id="showUpdate" class="card-link d-flex justify-content-around flex-wrap" > <!-- boutons de suppression du profil -->
+                    <div v-if="showUpdate === true " id="showUpdate" class="card-link d-flex justify-content-around flex-wrap" > <!-- boutons de suppression du profil -->
                         <button role="button" class="btn btn-light mt-1 pencil" alt="modifier mon mot de passe" @click="showUpdateOption()"><b-icon icon="pencil-square" ></b-icon></button>
                         <button role="button" class="btn btn-light mt-1 camera" alt="modifier ma photo de profil" @click="showUpdateOption()"><b-icon icon="camera"></b-icon></button>
                         <button role="button" class="btn btn-light mt-1 lock-fill" alt="modifier mon mot de passe" @click="showUpdateOption()"><b-icon icon="lock-fill" ></b-icon></button>
@@ -19,69 +19,69 @@
             </div>
         </div>
         <!-- modification profil -->
-        <!-- changement pseudo -->
-        <div id="udpdatePseudo" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePsd"> <!-- faire de cette div un seul block bouton-->
-                <p>Quel est votre nouveau pseudo ?</p>
-            <label>
-                <input type="text" id="newPseudo" name="newPseudo" v-model="newPseudo" placeholder="Votre nouveau pseudo">
-            </label>
-            <label>Confirmer le changement avec votre mot de passe : 
-                <input type="password" required v-model="password" id="password" name="password" placeholder="Votre mot de passe actuel" class="mb-2">
-                <p v-if="checkPseudo" class="rounded border border-danger px-3 mt-1 text-danger">Votre pseudo doit contenir au moins 3 caractères :)</p>
-            </label>
-            <button for="newPseudo" class="btn btn-secondary" @click="updatePseudo()">Modifier mon pseudo</button>
-        </div>
-        <!-- changement profilePic -->
-        <div id="updatePic" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePic"> <!-- faire de cette div un seul block bouton-->
-                <p>Sélectionnez une nouvelle image (format : jpg, jpeg ou png) : </p>
-            <label>
-            <input type="file" id="newPic" name="newPic" v-on:change="changeFilePic" accept="image/png, image/jpg, image/jpeg">
-            </label>
-            <button for="newPic" class="btn btn-secondary" @click="updateProfilePic()">Modifier ma photo</button>
-        </div>
-        <!-- changement mdp -->
-        <div id="updatePwd" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePwd"> <!-- faire de cette div un seul block bouton-->
-                <p>Pour changer de mot de passe : </p>
-            <label>
-                <label>Renseignez votre mot de passe actuel : 
-                    <input type="password" required v-model="password" id="password" name="password" placeholder="Votre mot de passe actuel" class="mb-2">
+            <!-- changement pseudo -->
+            <div id="udpdatePseudo" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePsd"> <!-- faire de cette div un seul block bouton-->
+                    <p>Quel est votre nouveau pseudo ?</p>
+                <label>
+                    <input type="text" id="newPseudo" name="newPseudo" v-model="newPseudo" placeholder="Mon nouveau pseudo">
                 </label>
-                <!-- <label for="newPassword"> -->
-                    <label>Saisissez votre mot nouveau mot de passe : 
-                        <input type="password" required  v-model="newPassword" id="newPassword" name="newPassword" placeholder="Votre nouveau mot de passe">
-                        <!-- <p v-if="newPassword!==verifP" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p> -->
+                <label> 
+                    <input type="password" required v-model="password" id="password" name="password" placeholder="Confirmer le changement avec mon mot de passe :" class="mb-2">
+                    <switch-v-1/>
+                    <p v-if="checkPseudo" class="rounded border border-danger px-3 mt-1 text-danger">Votre pseudo doit contenir au moins 3 caractères :)</p>
+                </label>
+                <button for="newPseudo" class="btn btn-secondary" @click="updatePseudo()">Modifier mon pseudo</button>
+            </div>
+            <!-- changement profilePic -->
+            <div id="updatePic" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePic"> <!-- faire de cette div un seul block bouton-->
+                    <p>Sélectionnez une nouvelle image (format : jpg, jpeg ou png) : </p>
+                <label>
+                <input type="file" id="newPic" name="newPic" v-on:change="changeFilePic" accept="image/png, image/jpg, image/jpeg">
+                </label>
+                <button for="newPic" class="btn btn-secondary" @click="updateProfilePic()">Modifier ma photo</button>
+            </div>
+            <!-- changement mdp -->
+            <div id="updatePwd" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePwd"> <!-- faire de cette div un seul block bouton-->
+                    <p>Pour changer de mot de passe : </p>
+                <div>
+                    <label>
+                        <input type="password" required v-model="password" id="password" name="password" placeholder="Mon mot de passe actuel" class="mb-2">
+                        <switch-v-1/>
                     </label>
-                    <label>Confirmer votre nouveau mot de passe :                
-                        <input type="password" required v-model="newPassword2" id="newPassword2" name="newPassword2" placeholder="Confirmez votre nouveau mot de passe" class="mb-2">
-                        <button class="password-icon" @click="switchVisibility()">
-                            <b-icon icon="eye-fill" class="eye-fill eye"></b-icon>
-                            <b-icon icon="eye-slash-fill" class="eye-slash-fill eyeoff"></b-icon>
-                        </button>
-                        <p v-if="newPassword!==newPassword2" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p>
+                    <!-- <label for="newPassword"> -->
+                        <label> 
+                            <input type="password" required  v-model="newPassword" id="newPassword" name="newPassword" placeholder="Mon nouveau mot de passe">
+                            <switch-v-1/>
+                        </label>
+                        <label>               
+                            <input type="password" required v-model="newPassword2" id="newPassword2" name="newPassword2" placeholder="Confirmez mon nouveau mot de passe" class="pb-2">
+                            <switch-v-1/>
+                        </label>
+                            <p v-if="newPassword!==newPassword2" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p>
+                </div>
+                <!-- </label> -->
+                <button for="newPwd" class="btn btn-secondary mt-3" @click="updatePassword()">Modifier mot de passe</button>
+            </div>
+            <!-- suppression compte -->
+            <div id="deleteProfile" class="mt-1 card mb-3 bg-light p-2 rounded border-danger" v-if="deleteProfile"> <!-- faire de cette div un seul block bouton-->
+                    <p>Pour supprimer votre compte : </p>
+                <div>
+                    <label class="mb-1">
+                        <input type="text" id="email" name="email" class="border-danger" required v-model="userEmail" placeholder="Mon email">
                     </label>
-                </label>
-            <!-- </label> -->
-            <button for="newPwd" class="btn btn-secondary mt-3" @click="updatePassword()">Modifier mot de passe</button>
-        </div>
-        <!-- suppression compte -->
-        <div id="deleteProfile" class="mt-1 card mb-3 bg-light p-2 rounded border-danger" v-if="deleteProfile"> <!-- faire de cette div un seul block bouton-->
-                <p>Pour supprimer votre compte : </p>
-            <label>
-                <label class="mb-1">Renseignez votre adresse email :
-                    <input type="text" id="email" name="email" class="border-danger" required v-model="userEmail" placeholder="Votre email">
-                </label>
-                <label>Saisissez votre mot de passe :
-                    <input type="password" id="password" name="password" class="border-danger" required v-model="password" placeholder="Votre mot de passe">
-                </label>
-            </label>
-            <button for="newPic" class="btn btn-danger mt-2" @click="deleteUser()">Supprimer mon compte</button>
-        </div>
+                    <label>
+                        <input type="password" id="password" name="password" class="border-danger" required v-model="password" placeholder="Mon mot de passe :">
+                        <switch-v-1/>
+                    </label>
+                </div>
+                <button for="newPic" class="btn btn-danger mt-2" @click="deleteUser()">Supprimer mon compte</button>
+            </div>
     </div>
 </template>
 
 <script>
 import axios from 'axios'; 
-
+import switchVisibility1 from '../switchVisibility1.vue'
 
 export default {
     name: 'Profile',
@@ -108,10 +108,9 @@ export default {
             deleteProfile: false
         };
     },
-    //if userIdparam == userid token : 
-    //afficher btn suppr et modif 
-    // if != 
-    //afficher bouton contact
+    components: {
+        'switchV1': switchVisibility1
+    },
     methods : {
         // afficher options de modif ou suppression
         showUpdateOption(){
@@ -323,6 +322,7 @@ export default {
                         this.$router.push('/feed');
                     }
                     else {
+                        localStorage.clear()
                         this.$router.push('/');
                     }
                 })
@@ -364,54 +364,48 @@ export default {
         }
     },
     mounted() {
-        let userData = JSON.parse(localStorage.getItem("connectedUser"));
-        let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+        if(!localStorage.getItem("connectedUser")){
+            this.$router.push(`/`);
+        }
+        else {
+            let userData = JSON.parse(localStorage.getItem("connectedUser"));
+            let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
-        axios
-            .get(`http://localhost:3000/api/users/profile/${ProfileId}`, {
-                headers: { // définir les données requises + le token pour auth
-                    Authorization: `Bearer ${userData.token}`
-                }
-            })
-            .then((response) => {
-                // console.log("reponse de get user id from url")
-                this.userPseudo = response.data[0].pseudo;
-                this.userName = response.data[0].firstName;
-                this.userLastName = response.data[0].lastName;
-                // this.userEmail = userInfo.email;
-                this.profilePic = response.data[0].profilePic;
-                if(ProfileId === userData.userId || userData.isAdmin === 1){
-                    // console.log("ProfileId : " + ProfileId + " userDataId : " + userData.userId)
-                    // console.log("userData Admin : " + userData.isAdmin)
-                    // console.log("showUpdate" + this.showUpdate)
-                    this.showUpdate = true
-                } else {
-                    this.showUpdate = false
-                }
-            })
-            .catch((err) => {
+            axios
+                .get(`http://localhost:3000/api/users/profile/${ProfileId}`, {
+                    headers: { // définir les données requises + le token pour auth
+                        Authorization: `Bearer ${userData.token}`
+                    }
+                })
+                .then((response) => {
+                    if((ProfileId == userData.userId) || (userData.isAdmin == 1)){
+                        console.log("ProfileId : " + ProfileId + " userDataId : " + userData.userId)
+                        console.log("userData Admin : " + userData.isAdmin)
+                        console.log("showUpdate" + this.showUpdate)
+                        this.showUpdate = true
+                        console.log(this.showUpdate)
+                    } else {
+                        this.showUpdate = false
+                    }
+                    this.userPseudo = response.data[0].pseudo;
+                    this.userName = response.data[0].firstName;
+                    this.userLastName = response.data[0].lastName;
+                    this.profilePic = response.data[0].profilePic;
+                })
+                .catch((err) => {
                 // console.log("l'erreur du get profile id est ici")
                 console.log(err.response.data.message)
                 this.$router.push(`/notFound`);
             });
+        }
     }
 }
 </script>
 
 <style>
-#profileId {
-    width: 100%;
-}
-#profilePic {
-    display: inline-block;
-    width: 200px;
-    height: 200px;
-    /* border-radius: 50%; */
-    border: 1px solid grey;
-    object-fit: cover;
-}
-
 label {
+    display: flex;
+    justify-content: center;
     position: relative;
     padding: 0.5rem 1rem;
     border-radius: 5px;
@@ -422,7 +416,7 @@ label .password-icon {
     display: flex;
     align-items: center;
     position: absolute;
-    top: 50%;
+    /* top: 50%; */
     right: 20px;
     /* transform: translateY(-50%); */
     width: 30px;

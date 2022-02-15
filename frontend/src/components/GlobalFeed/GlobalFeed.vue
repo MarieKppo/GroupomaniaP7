@@ -1,10 +1,10 @@
 <template>
     <div>
-        <div class="card">
+        <div class="card bg-blue text-white">
             <div class="card-body">
-                <h5 class="text-center my-2 card-title">Bienvenu sur le fil de publications des membres de Groupomania</h5>
+                <h5 class="text-center my-2 card-title">Bienvenu sur Groupomania, réseau social de votre entreprise !</h5>
                 <p class="text-center my-2card-text">Vous pouvez écrire des articles et les partager avec les autres membres de la communauté ! <br>
-                Veuillez à respecter le réglement de l'entreprise et à faire preuve de bienveillance les uns envers les autres.</p>
+                <small>Veuillez à respecter le réglement de l'entreprise et à faire preuve de bienveillance les uns envers les autres.</small></p>
             </div>
         </div>
         <!-- publier du contenu    -->

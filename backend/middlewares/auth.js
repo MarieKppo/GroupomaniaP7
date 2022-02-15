@@ -1,4 +1,3 @@
-const env = require("../environnement"); // récup variables!
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {

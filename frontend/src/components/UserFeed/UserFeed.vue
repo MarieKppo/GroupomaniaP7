@@ -30,7 +30,7 @@
             <h5>Publications</h5>
             <div class="card noPosts mb-3"> 
             </div>
-            <div v-bind:key="date" v-for="(post, date) in posts">
+            <div v-bind:key="id" :id="`card-`+id" v-for="(post, id) in posts">
                 <div class="card"> <!-- v-for v-model -->
                     <div class="card-body">
                         <!-- info utilisateur et options suppr -->
@@ -41,7 +41,7 @@
                                 <p class="card-title p-2" v-if="post.pseudo === null">{{ post.firstName }} {{ post.lastName }}</p>
                             </div>
                             <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
-                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
+                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId, id)" role="button"></b-icon>
                         </div> 
                         <!-- contenu publication -->
                         <p class="card-text">{{ post.content }}</p>
@@ -49,8 +49,9 @@
                         <!-- info publication et options interactions -->
                         <div class="d-flex justify-content-between">
                             <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
+                            <small v-if="(post.type == 'partage' || post.type == 'Partagé')">Publié par {{ post.userId }}</small>
                             <div class="postOptions">
-                                <button class="card-link btn btn-secondary"  @click="sharePost(post.postId)" role="button">Partager</button> 
+                                <button class="card-link btn btn-pink" @click="sharePost(post.postId)" role="button">Partager</button> 
                                 <!-- <button class="card-link btn btn-secondary" role="button">Commenter</button> -->
                             </div>
                         </div>
@@ -79,31 +80,36 @@ export default {
         };
     },
     created() {
-        let userData = JSON.parse(localStorage.getItem("connectedUser"));
-        this.admin = !!userData.isAdmin;
-        this.userId = userData.userId;
-        console.log("userData admin : "+ this.admin)
-        this.ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+        if(!localStorage.getItem("connectedUser")){
+            this.$router.push(`/`);
+        }
+        else {
+            let userData = JSON.parse(localStorage.getItem("connectedUser"));
+            this.admin = !!userData.isAdmin;
+            this.userId = userData.userId;
+            console.log("userData admin : "+ this.admin)
+            this.ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
-        console.log("userId connecté : " + this.userId)
-        console.log("profil visité : " + this.ProfileId)
+            console.log("userId connecté : " + this.userId)
+            console.log("profil visité : " + this.ProfileId)
 
-        //afficher les posts
-        axios
-            .get(`http://localhost:3000/api/posts/profile/${this.ProfileId}/posts`, {
-                headers: {
-                    'Authorization': `Bearer ${userData.token}`,
-                }
-            })
-            .then((response) => {
-                console.log(response)
-                this.posts = response.data.userFeed;
-                console.log(this.posts);
-            })
-            .catch((error) => {
-                console.log(error)
-                document.querySelector(".noPosts").innerHTML = `<div class="card-body">${error.response.data.message}</div>`
-                });
+            //afficher les posts
+            axios
+                .get(`http://localhost:3000/api/posts/profile/${this.ProfileId}/posts`, {
+                    headers: {
+                        'Authorization': `Bearer ${userData.token}`,
+                    }
+                })
+                .then((response) => {
+                    console.log(response)
+                    this.posts = response.data.userFeed;
+                    console.log(this.posts);
+                })
+                .catch((error) => {
+                    console.log(error)
+                    document.querySelector(".noPosts").innerHTML = `<div class="card-body">${error.response.data.message}</div>`
+                    });
+        }
     },
     methods: {
         // update props visuel qd sélectionné car v-model ne supporte pas les fichiers
@@ -191,7 +197,7 @@ export default {
             }
         },
         //supprimer un partage
-        deleteShare(shareId) {
+        deleteShare(shareId, id) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
             console.log('dans la fonction delete share vue shareId : '+ shareId + ' token :'+this.token)
@@ -203,7 +209,8 @@ export default {
                         }
                     })   
                     .then(() => {
-                        this.displayAllUserPosts();
+                        // this.displayAllUserPosts();
+                        document.querySelector("#card-"+ id).remove()
                     })
                     .catch((error) => console.log(error));
             }
@@ -231,12 +238,5 @@ export default {
 </script>
 
 <style>
-.profilePicU{
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: 1px solid grey;
-    object-fit: cover;
-}
+
 </style>

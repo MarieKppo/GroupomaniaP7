@@ -4,6 +4,18 @@ const fs = require("fs"); // Permet de gérer les fichiers stockés
 const Utils = require("../utils/utils"); //importe la fonction pour décoder le token
 
 // fonction pour afficher tous les posts et partages
+
+// ajouter les noms des auteurs des publi qd partages : 
+// `SELECT  share.id_user AS 'partagé par',share.id AS 'partage n°', share.id_post AS 'post partagé:', 
+// `sharers`.pseudo, `sharers`.profilePic, `sharers`.lastName, `sharers`.firstName, 
+// `writers`.pseudo AS 'publi originale par',
+// posts.content, posts.visualContent, posts.id_user AS 'publié par'
+//             FROM share, users AS `sharers`, posts
+//             left outer JOIN users AS `writers` ON posts.id_user = `writers`.id
+//             WHERE share.id_user = `sharers`.id 
+//             AND share.id_post = posts.id
+//             ORDER BY share_date LIMIT 20``
+            
 exports.getAllPosts = (req, res, next) => {
     console.log("je suis ici");
     let feed = [];
