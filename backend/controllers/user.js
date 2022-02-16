@@ -1,13 +1,12 @@
 // modules
 const mysql = require('../Database').connection; //connecion bdd
 require('dotenv').config();
-const bcrypt = require('bcrypt'); //hacher le mdp
-const jwt = require('jsonwebtoken'); //token sécu
+const bcrypt = require('bcrypt'); 
+const jwt = require('jsonwebtoken'); 
 const fs = require('fs'); //génère fichier stockés
 const Utils = require('../utils/utils');
-// const multer = require('multer');
 
-//fonction pour créer un compte //testée ok
+//fonction pour créer un compte 
 exports.signup = (req, res, next) => {
     if((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/).test(req.body.password) &&
         (/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).test(req.body.email)) {
@@ -47,8 +46,9 @@ exports.signup = (req, res, next) => {
         }
     }
 }
+//fin fonction pour créer un compte 
 
-// fonction pour se connecter //testée ok
+// fonction pour se connecter
 exports.login = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
@@ -83,6 +83,7 @@ exports.login = (req, res, next) => {
             .catch(e => res.status(500).json(e));
     });
 };
+// fin fonction pour se connecter
 
 // fonction pour afficher le profil
 exports.getOneUser = (req, res, next) => {
@@ -101,8 +102,9 @@ exports.getOneUser = (req, res, next) => {
         res.status(200).json(result);
     });
 }
+// fin fonction pour afficher le profil
 
-// fonction de modif du profil à décommenter 
+// modifier la photo de profil 
 exports.modifyUserPic = (req, res, next) => {
     const userIdAsked = req.params.id; //id de l'url/route
     const token = Utils.getReqToken(req);
@@ -153,11 +155,12 @@ exports.modifyUserPic = (req, res, next) => {
             });
         }
     }
-} // fin fonction modification
+}
+// fin modifier la photo de profil 
 
 // fonction pour modifier le pseudo d'un user 
 exports.modifyUserPseudo = (req, res, next) => {
-    const userIdPseudo = req.params.id; //id de l'url/route
+    const userIdPseudo = req.params.id; 
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
@@ -173,7 +176,7 @@ exports.modifyUserPseudo = (req, res, next) => {
         const sqlFindUser = "SELECT password FROM users WHERE id = ?";
         mysql.query(sqlFindUser, [userId], function (err, result) {
             if (err) {
-                return res.status(500).json(err.message); // lister les erreurs possibles : mail déjà utilisé, info manquante ?
+                return res.status(500).json(err.message); 
             };
             if (result.length == 0) {
                 return res.status(401).json({
@@ -201,11 +204,11 @@ exports.modifyUserPseudo = (req, res, next) => {
         });
     }
 }
+// fin fonction pour modifier le pseudo d'un user 
 
 // modifier le mot de passe d'un utilisateur
 exports.modifyUserPassword = (req, res, next) => {
-    console.log("modifcation du mdp")
-    const userIdPassword = req.params.id; //id de l'url/route
+    const userIdPassword = req.params.id; 
     const newPassword = req.body.newPassword;
     const password = req.body.password;
     const token = Utils.getReqToken(req);
@@ -266,13 +269,13 @@ exports.modifyUserPassword = (req, res, next) => {
         }
     }
 }
+// fin modifier le mot de passe d'un utilisateur
 
-// fonction pour supprimer son compte
+// fonction pour supprimer un compte utilisateur
 exports.deleteOneUser = (req, res, next) => {
-    console.log("suppression compte back")
     const password = req.body.password;
     const email = req.body.email;
-    const userIdToDelete = req.params.id; //id de l'url/route
+    const userIdToDelete = req.params.id; 
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
@@ -303,7 +306,7 @@ exports.deleteOneUser = (req, res, next) => {
                     }
                     const filename = result[0].profilePic.split("/images/")[1];
                     if (filename !== "defaultProfilePic.jpg") {
-                        fs.unlink(`./images/${filename}`, (e) => { // On supprime le fichier image si autre que par défaut
+                        fs.unlink(`./images/${filename}`, (e) => { 
                             if (e) {
                                 console.log(e);
                             }
@@ -352,7 +355,7 @@ exports.deleteOneUser = (req, res, next) => {
                             error: "Mot de passe incorrect !"
                         });
                     }
-                    let sqlFindUserToDelete = "SELECT profilePic FROM users WHERE id = ?"; //recup user dans bdd 
+                    let sqlFindUserToDelete = "SELECT profilePic FROM users WHERE id = ?";  
                     mysql.query(sqlFindUserToDelete, [userIdToDelete], function (err, result){
                         if(err){
                             return res.status(500).json(err.message)
@@ -388,3 +391,4 @@ exports.deleteOneUser = (req, res, next) => {
         });
     }            
 }
+// fin fonction pour supprimer un compte utilisateur

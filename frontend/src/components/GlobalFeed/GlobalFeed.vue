@@ -8,11 +8,8 @@
             </div>
         </div>
         <!-- publier du contenu    -->
-        <div class="my-3 bg-light p-2 rounded">
-            <!-- <div class="d-flex justify-content-between align-items-center"> -->
-                <h5>Publier du contenu</h5>
-                <!-- <b-icon icon="caret-down-fill" font-scale="1"></b-icon> -->
-            <!-- </div> -->
+        <div class="my-3 bg-light p-2 rounded" alt="fil de publication de Groupomania">
+            <h5>Publier du contenu</h5>
             <form @submit.prevent=createPost() class="card"> 
                 <textarea 
                     type="textarea" 
@@ -22,7 +19,7 @@
                     v-model=" textContent " 
                     placeholder="Que voulez-vous partager aujoud'hui ?"
                     minlength="3" 
-                    maxlength="300" 
+                    maxlength="3000" 
                     size="150">
                 </textarea>
                 <input 
@@ -33,8 +30,8 @@
                     placeholder="Votre image"
                     accept="image/png, image/jpg, image/jpeg"
                     v-on:change="fileChangePost"
-                >   <!-- v-on:change remplace v-model -->
-                <button type="submit" class="btn btn-secondary mt-1">Publier</button> <!-- v-if="textContent != null || visualContent != null" -->
+                >   
+                <button type="submit" class="btn mt-1">Publier</button> 
             </form>
 
         </div>
@@ -52,21 +49,24 @@
                             <div class="card-title d-flex justify-content-between">
                                 <div class="d-flex">
                                     <img class="profilePic" v-if="post.profilePic" v-bind:src="post.profilePic" v-bind:alt="`Photo de profil de ${post.pseudo}`" @click="showUserProfile(post.userId)"> <!-- ajouter la miniature profilePic -->
-                                    <p class="card-title p-2 font-weight-bold">{{ post.pseudo }}</p>
-                                    <p class="card-title p-2" v-if="post.pseudo === null">{{ post.firstName }} {{ post.lastName }}</p>
+                                    <p class="card-title p-2">{{ post.pseudo }}</p>
+                                    <p class="card-title p-2" v-if="(post.pseudo == null) || (post.pseudo == '')">{{ post.firstName }} {{ post.lastName }}</p>
                                 </div>
-                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'post' || post.type == 'Posté')" @click="deletePost(post.postId)" role="button"></b-icon>
-                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'partage' || post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
+                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Publié')" @click="deletePost(post.postId)" role="button"></b-icon>
+                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
                             </div> 
                             <!-- contenu publication -->
                             <p class="card-text">{{ post.content }}</p>
                             <img class="card-img mb-2" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
-                            <!-- info publication et options interactions -->
+                            <!-- info publication et option de partage -->
                             <div class="d-flex justify-content-between">
-                                <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
+                                <div class="d-flex flex-column">
+                                    <small>{{ post.type }} le : {{ post.date | formatDate}}</small>
+                                    <small v-if="(post.type == 'partage' || post.type == 'Partagé')">Auteur : <a :href="/profile/+post.authorId">{{ post.authorFirstName }} {{ post.authorLastname }}</a></small>
+                                </div>
                                 <div class="postOptions">
-                                    <button name="partager" alt="Partager ce contenu sur mon profil" class="card-link btn btn-secondary" @click="sharePost(post.postId)" role="button">Partager</button> 
-                                    <!-- <button name="commenter" class="card-link btn btn-secondary" role="button">Commentaires</button> -->
+                                    <button name="partager" alt="Partager ce contenu sur mon profil" class="card-link btn" @click="sharePost(post.postId)" role="button">Partager</button> 
+                                    <!-- <button name="commenter" class="card-link btn" role="button">Commentaires</button> -->
                                 </div>
                             </div>
                         </div>
@@ -78,6 +78,7 @@
 
 <script>
 import axios from 'axios';
+
 export default {
     name: 'GlobalFeed',
     data(){
@@ -85,31 +86,35 @@ export default {
             admin: false,
             userId: "",
             token: "",
-            posts: [], // stocke la data de chaque post 
+            posts: [],  
             comments: [],
             textContent: null,
             visualContent: null
         };
     },
     created() {
-        let userData = JSON.parse(localStorage.getItem("connectedUser"));
-        this.admin = !!userData.isAdmin;
-        console.log("userData admin : "+ this.admin)
-        this.userId = userData.userId;
-        this.token = userData.token;
+        if(!localStorage.getItem("connectedUser")){
+            this.$router.push(`/`);
+        }
+        else {
+            let userData = JSON.parse(localStorage.getItem("connectedUser"));
+            this.admin = !!userData.isAdmin;
+            this.userId = userData.userId;
+            this.token = userData.token;
 
-        //afficher les posts
-        axios
-            .get("http://localhost:3000/api/posts", {
-                headers: {
-                    'Authorization': `Bearer ${userData.token}`,
-                }
-            })
-            .then((response) => {
-                this.posts = response.data;
-                console.log(this.posts);
-            })
-            .catch((error) => console.log(error));
+            //afficher les posts
+            axios
+                .get("http://localhost:3000/api/posts", {
+                    headers: {
+                        'Authorization': `Bearer ${userData.token}`,
+                    }
+                })
+                .then((response) => {
+                    this.posts = response.data;
+                    console.log(this.posts);
+                })
+                .catch((error) => console.log(error));
+        }
     },
     methods: {
         // update props visuel qd sélectionné car v-model ne supporte pas les fichiers
@@ -119,10 +124,6 @@ export default {
         // créer une publication
         createPost(){
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
-            console.log('dans la fonction publier vue postId //  token : '+ userData.token)
-            console.log('textContent '+ this.textContent)
-            console.log('visualContent ')
-            console.log( this.visualContent)
 
             const formData = new FormData(); //créer paire clé/valeur pour req
             formData.append("textContent", this.textContent);
@@ -135,14 +136,12 @@ export default {
                     method: "post",
                     url: `http://localhost:3000/api/posts/`,
                     data: formData,
-                    headers: { // définir les données requises + le token pour auth
+                    headers: { 
                         "content-type": "multipart/form-data",
                         Authorization: `Bearer ${userData.token}`
                     },
                 })
-                .then(reponse => {
-                    console.log("Posté avec succés !")
-                    console.log(reponse);
+                .then(() => {
                     this.textContent = null,
                     this.visualContent = null,
                     document.querySelector("#textContent").value = null;
@@ -156,17 +155,16 @@ export default {
             }
     
         },
-        //partager un post A REVOIR PASSE PAS L'AUTH !!!
+        //partager un post 
         sharePost(postId) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
-            console.log('dans la fonction share post vue postId : '+ postId + ' token : '+ this.token);
 
             if (confirm("Voulez vous vraiment partager ce post ?")) {
                 axios({
                     method: "post",
                     url: `http://localhost:3000/api/posts/share/${postId}`,
-                    headers: { // définir les données requises + le token pour auth
+                    headers: { 
                         Authorization: `Bearer ${userData.token}`
                     },
                     })
@@ -180,7 +178,6 @@ export default {
         deletePost(postId) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
-            console.log('dans la fonction delete post vue postId : '+ postId + ' token : '+ this.token)
             if (confirm("Voulez vous vraiment supprimer ce post ?")) {
                 axios({
                     method: "delete",
@@ -200,7 +197,6 @@ export default {
         deleteShare(shareId) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
-            console.log('dans la fonction delete share vue shareId : '+ shareId + ' token :'+this.token)
             if (confirm("Voulez vous vraiment supprimer ce partage ?")) {
                 axios
                     .delete(`http://localhost:3000/api/posts/share/${shareId}`, {
@@ -210,6 +206,7 @@ export default {
                     })   
                     .then(() => {
                         this.displayAllPosts();
+                        window.location.reload()
                     })
                     .catch((error) => console.log(error));
             }
@@ -249,5 +246,4 @@ export default {
     object-fit: cover;
     cursor: pointer;
 }
-
 </style>

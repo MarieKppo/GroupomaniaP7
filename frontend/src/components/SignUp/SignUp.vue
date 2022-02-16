@@ -11,38 +11,38 @@
             <p>{{ txt }}</p>
 
             <!-- formulaire de connexion -->
-            <form class="form-control" @submit.prevent=signUp()>
+            <form class="form-control" @submit.prevent=signUp() alt="formulaire d'inscription à l'application Groupomania">
                 <div class="form-group mb-2 mx-auto d-flex flex-column">
                     <label for="identifiant">
-                        <input type="text" id="pseudo" v-model="pseudo" class=""  placeholder="Mon pseudo - ex : L3o ">
+                        <input type="text" id="pseudo" v-model="pseudo" class=""  placeholder="Mon pseudo - ex : L3o " alt="emplacement pour saisir votre pseudo">
                         <p v-if="noMatchPseudo" class="rounded border border-danger px-3 mt-1 text-danger">
                             Votre pseudo doit contenir au moins 3 caratères (lettres, chiffres et caractères spéciaux).</p>
                     </label>
 
                     <label for="lastName">
-                        <input type="text" id="lastName" v-model.lazy="lastName" class="" required placeholder="Mon nom* - ex : Dupont">
+                        <input type="text" id="lastName" v-model.lazy="lastName" class="" required placeholder="Mon nom* - ex : Dupont" alt="emplacement pour renseigner votre nom">
                         <p v-if="noMatchLName" class="rounded border border-danger px-3 mt-1 text-danger">
                             Votre nom doit contenir au moins 2 lettres ou caractères spéciaux</p>
                     </label>
 
                     <label for="firstName"> 
-                        <input type="text" id="firstName" v-model="firstName" class="" required placeholder="Mon prénom* - ex : Paul">
+                        <input type="text" id="firstName" v-model="firstName" class="" required placeholder="Mon prénom* - ex : Paul" alt="emplacement pour renseigner votre prénom">
                         <p v-if="noMatchFName" class="rounded border border-danger px-3 mt-1 text-danger">
                             Votre prenom doit contenir au moins 2 lettres ou caractères spéciaux</p>
                     </label>
 
                     <label for="email">
-                        <input type="text" id="email" v-model="email" class="" placeholder="Mon email* - ex : pauldupont@groupomania.fr">
+                        <input type="text" id="email" v-model="email" class="" placeholder="Mon email* - ex : pauldupont@groupomania.fr" alt="emplacement pour renseigner votre email">
                         <p v-if="noMatchEmail" class="rounded border border-danger px-3 mt-1 text-danger">test {{  }}</p>
                     </label>
 
                     <label for="password">
-                        <input type="password" id="password" v-model="password" placeholder="Mon mot de passe* - ex : m0td&pass3!">
+                        <input type="password" id="password" v-model="password" placeholder="Mon mot de passe* - ex : m0td&pass3!" alt="emplacement pour choisir votre mot de passe">
                         <switch-v-1/>
                     </label>
                         <p v-if="noMatchPwd" class="rounded border border-danger px-3 mt-1 text-danger">Votre mot de passe doit contenir au moins 8 caractères dont au moins 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial.</p>
                     <label>
-                        <input type="password" id="confirmPwd" v-model="confirmPwd" placeholder="Confirmer votre mot de passe">
+                        <input type="password" id="confirmPwd" v-model="confirmPwd" placeholder="Confirmer votre mot de passe" alt="emplacement pour confirmer votre mot de passe">
                         <div class="password-icon" @click="switchVisibility()">
                             <b-icon icon="eye-fill" class="eye-fillx"></b-icon>
                             <b-icon icon="eye-slash-fill" class="eye-slash-fillx"></b-icon>
@@ -50,7 +50,7 @@
                     </label>
                         <p v-if="noMatchingPwd" class="rounded border border-danger px-3 mt-1 text-danger">Vérifiez la correspondance des 2 mots de passe saisis.</p>
                     <small>* : champs obligatoires</small>
-                <button type="submit" class="btn btn-secondary btn-block m-1">Créer un compte</button>
+                <button type="submit" class="btn btn-block m-1">Créer un compte</button>
                 </div>
             </form>
             <router-link :to="`/`" class="font-weight-lighter"><small>J'ai déjà un compte, je me connecte</small></router-link>
@@ -106,7 +106,6 @@ export default {
         //     });
         // },
         InputChecking(){
-            //aurait pu être fait avec eventListener change
             // Regex 
             let verifPseudo = /^[\w'\-,.0-9_!¡?#ˆ&*()][^÷¿/\\+=@$%{}|~<>;:[\]]{2,}$/;
             let verifName = /^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/;
@@ -128,11 +127,7 @@ export default {
                 this.noMatchLName = false
             }
             if(verifEmail.test(this.email) === false){
-                console.log("input checking")
-                console.log(this.email)
-                console.log("this.checkemail before change : " + this.noMatchEmail)
                 this.noMatchEmail= true;
-                console.log("this.checkemail after change : " + this.noMatchEmail)
             }else{
                 this.noMatchEmail = false
             }
@@ -148,16 +143,13 @@ export default {
             }
         },
         signUp(){
-            this.InputChecking();
-            console.log("signup fonction")
-            
+            this.InputChecking();            
             if (this.noMatchPseudo === false &&
                 this.noMatchFName === false &&
                 this.noMatchLName === false &&
                 this.noMatchEmail === false &&
                 this.noMatchPwd === false &&
                 this.noMatchingPwd === false) {
-                console.log("on peut envoyer les données dans l'api")
 
                 axios({
                     method: 'post',
@@ -171,18 +163,15 @@ export default {
                     }
                 })
                 .then(() => {
-                    console.log("creation réussie");
                     alert("Votre compte est bien créé ! Vous pouvez vous connecter : ")
                     this.$router.push(`/`)
                 })
                 .catch((error) =>{ 
-                    console.log(error.response)
                     alert(JSON.stringify(error.response.data.message));
                     // return error;
                 })
             }
             else {
-                console.log('remplir correctement tous les champs')
                 confirm("Pour pouvoir valider votre inscription, tous les champs requis doivent être complétés correctement.")
             }
         }

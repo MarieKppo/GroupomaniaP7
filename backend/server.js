@@ -16,7 +16,6 @@ const normalizePort = val => {
 };
 
 const port = normalizePort(process.env.PORT || '3000');
-//écoute la réponse du serveur pour l'afficher sur le port donné ou sur le port 3000
 app.set('port', port);
 
 //gère les différentes erreurs puis est enregistrée dans le serveur ligne 45
@@ -43,7 +42,6 @@ const errorHandler = error => {
 const server = http.createServer(app);
 
 server.on('error', errorHandler);
-//écouteur d'événement
 server.on('listening', () => {
   const address = server.address();
   const bind = typeof address === 'string' ? 'pipe ' + address : 'port ' + port;

@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, callback) => {
         //générer le nv nom du fichier
-        const name = file.originalname.split('.')[0].split(' ').join('_'); //élimine le pb des espaces et la première extension d'origine
+        const name = file.originalname.split('.')[0].split(' ').join('_'); 
         //mime type
         const extension = MIME_TYPES[file.mimetype];
         callback(null, name + Date.now() + '.' + extension);

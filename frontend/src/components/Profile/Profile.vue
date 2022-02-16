@@ -2,14 +2,15 @@
     <div class="UserProfile">
         <h1 class="mt-3">Profil de {{ userName }}</h1>
         <!--carte profil-->
-        <div class="d-inline-flex" id="profileId"> <!-- changer css d-sm-block -->
+        <div class="d-inline-flex" id="profileId"> 
             <img id="profilePic" class="card-img" v-if="profilePic" v-bind:src="profilePic" :alt="`photo de profil de ` + userPseudo">
             <!-- infos utilisateur -->
             <div class="card col">
                 <div class="card-body">
                     <h5 class="card-title">{{ userPseudo }}</h5>
                     <p class="card-text">{{ userName }} {{ userLastName }}</p>
-                    <div v-if="showUpdate === true " id="showUpdate" class="card-link d-flex justify-content-around flex-wrap" > <!-- boutons de suppression du profil -->
+                    <!-- boutons de suppression du profil -->
+                    <div v-if="showUpdate === true " id="showUpdate" class="card-link d-flex justify-content-around flex-wrap" > 
                         <button role="button" class="btn btn-light mt-1 pencil" alt="modifier mon mot de passe" @click="showUpdateOption()"><b-icon icon="pencil-square" ></b-icon></button>
                         <button role="button" class="btn btn-light mt-1 camera" alt="modifier ma photo de profil" @click="showUpdateOption()"><b-icon icon="camera"></b-icon></button>
                         <button role="button" class="btn btn-light mt-1 lock-fill" alt="modifier mon mot de passe" @click="showUpdateOption()"><b-icon icon="lock-fill" ></b-icon></button>
@@ -20,7 +21,7 @@
         </div>
         <!-- modification profil -->
             <!-- changement pseudo -->
-            <div id="udpdatePseudo" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePsd"> <!-- faire de cette div un seul block bouton-->
+            <div id="udpdatePseudo" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePsd"> 
                     <p>Quel est votre nouveau pseudo ?</p>
                 <label>
                     <input type="text" id="newPseudo" name="newPseudo" v-model="newPseudo" placeholder="Mon nouveau pseudo">
@@ -28,9 +29,9 @@
                 <label> 
                     <input type="password" required v-model="password" id="password" name="password" placeholder="Confirmer le changement avec mon mot de passe :" class="mb-2">
                     <switch-v-1/>
-                    <p v-if="checkPseudo" class="rounded border border-danger px-3 mt-1 text-danger">Votre pseudo doit contenir au moins 3 caractères :)</p>
                 </label>
-                <button for="newPseudo" class="btn btn-secondary" @click="updatePseudo()">Modifier mon pseudo</button>
+                <p v-if="checkPseudo" class="rounded border border-danger px-3 mt-1 text-danger">Votre pseudo doit contenir au moins 3 caractères :)</p>
+                <button for="newPseudo" class="btn" @click="updatePseudo()">Modifier mon pseudo</button>
             </div>
             <!-- changement profilePic -->
             <div id="updatePic" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePic"> <!-- faire de cette div un seul block bouton-->
@@ -38,7 +39,7 @@
                 <label>
                 <input type="file" id="newPic" name="newPic" v-on:change="changeFilePic" accept="image/png, image/jpg, image/jpeg">
                 </label>
-                <button for="newPic" class="btn btn-secondary" @click="updateProfilePic()">Modifier ma photo</button>
+                <button for="newPic" class="btn" @click="updateProfilePic()">Modifier ma photo</button>
             </div>
             <!-- changement mdp -->
             <div id="updatePwd" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePwd"> <!-- faire de cette div un seul block bouton-->
@@ -48,18 +49,15 @@
                         <input type="password" required v-model="password" id="password" name="password" placeholder="Mon mot de passe actuel" class="mb-2">
                         <switch-v-1/>
                     </label>
-                    <!-- <label for="newPassword"> -->
-                        <label> 
-                            <input type="password" required  v-model="newPassword" id="newPassword" name="newPassword" placeholder="Mon nouveau mot de passe">
-                            <switch-v-1/>
-                        </label>
-                        <label>               
-                            <input type="password" required v-model="newPassword2" id="newPassword2" name="newPassword2" placeholder="Confirmez mon nouveau mot de passe" class="pb-2">
-                            <switch-v-1/>
-                        </label>
-                            <p v-if="newPassword!==newPassword2" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p>
+                    <label> 
+                        <input type="password" required  v-model="newPassword" id="newPassword" name="newPassword" placeholder="Mon nouveau mot de passe">
+                        <switch-v-1/>
+                    </label>
+                    <label>               
+                        <input type="password" required v-model="newPassword2" id="newPassword2" name="newPassword2" placeholder="Confirmez mon nouveau mot de passe" class="pb-2">                            <switch-v-1/>
+                    </label>
+                        <p v-if="newPassword!==newPassword2" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p>
                 </div>
-                <!-- </label> -->
                 <button for="newPwd" class="btn btn-secondary mt-3" @click="updatePassword()">Modifier mot de passe</button>
             </div>
             <!-- suppression compte -->
@@ -87,7 +85,6 @@ export default {
     name: 'Profile',
     data() {
         return {
-            // profileId: URLSearchParams.id,
             userId: "",
             userPseudo: "",
             userName: "",
@@ -101,7 +98,7 @@ export default {
             newPassword: null,
             newPassword2: null,
             token: "",
-            showUpdate: false,// vérif si profileId = userId || admin = true et si oui passer variable à true poru montrer bloc modif
+            showUpdate: false,
             updatePsd: false,
             updatePic: false,
             updatePwd: false,
@@ -114,7 +111,6 @@ export default {
     methods : {
         // afficher options de modif ou suppression
         showUpdateOption(){
-            console.log("bouton option de modif cliqué")
             const pic = document.querySelector(".camera");
             const pen = document.querySelector(".pencil");
             const lockFill = document.querySelector(".lock-fill")
@@ -160,14 +156,11 @@ export default {
                     this.deleteProfile = true;
                 }
             });
-
-
         },
         changeFilePic(e){
             this.newProfilePic = e.target.files[0] || e.dataTransfer.files;
         },
         updateProfilePic(){
-            console.log('changer la photo');
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
@@ -182,13 +175,10 @@ export default {
                     Authorization: `Bearer ${userData.token}`
                 },
             })
-            .then(response => {
-                console.log("photo modifiée avec succés");
-                console.log(response)
+            .then(() => {
                 document.querySelector("#newPic").value = null;
                 this.updatePic = false;
                 this.displayUser();
-                // this.profilePic = "";
             })
             .catch((err) =>  {
                 console.log("l'erreur est ici")
@@ -200,7 +190,6 @@ export default {
             const eyeoff = document.querySelector(".eyeoff");
             const passwordField = document.querySelector("#newPassword2");
             
-            // password field
             eye.addEventListener("click", () => {
                 eye.style.display = "none";
                 eyeoff.style.display = "block";
@@ -215,11 +204,11 @@ export default {
         },
         updatePseudo() {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
-            let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);        
-            if ((userData.userId === ProfileId) || userData.isAdmin){
-                if((/^[\w'\-,.0-9_ !¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,30}$/).test(this.newPseudo)){
-                    console.log("modifier le pseudo ok")
-                    if(userData.isAdmin || userData.userId === ProfileId){
+            let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);   
+    
+            if ((userData.userId == ProfileId || userData.isAdmin) && this.password != null){
+                if((/^[\w'\-,.0-9_ !¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,30}$/).test(this.newPseudo) === true){
+                    if(userData.isAdmin || userData.userId == ProfileId){
                         axios({
                             method: 'put',
                             url: `http://localhost:3000/api/users/pseudo/${ProfileId}`,
@@ -236,34 +225,33 @@ export default {
                             alert(JSON.stringify(err.response.data.error))
                         })
                     }
-                    else {
-                        alert("Vous ne pouvez pas modifier le pseudo d'un de vos collègues !")
-                    }
-                }else {
+                } else {
                     this.checkPseudo = true
                 }
             }
-
+            else {
+                if(this.password === null){
+                    alert("Merci de saisir votre mot de passe pour modifier votre pseudo.")
+                }
+                else {
+                    alert("Vous ne pouvez pas modifier le pseudo d'un de vos collègues !")
+                }
+            }
         },
         updatePassword(){
-            console.log('changer le mdp');
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
-            // console.log(this.password)
-            // console.log(this.newPassword)
-            // console.log(this.newPassword2)
+
             let verifP = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
-            // console.log(verifP.test(this.newPassword))
 
             if (this.password === null && this.newPassword === null && this.newPassword2 === null) {
                 (alert("Veuillez renseigner les champs pour pouvoir modifier votre mdp"));
             } else {
-                if (this.newPassword != this.newPassword2){ // ajouter verif regex
+                if (this.newPassword != this.newPassword2){ 
                     alert("Attention, le nouveau mot de passe saisi et sa confirmation ne sont pas identiques !")
                 }
                 if (verifP.test(this.newPassword) === false){
                     alert("Votre mot de passe doit contenir au moins : 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.")
-                    // console.log("Votre mot de passe doit contenir au moins : 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.")
                 }
                 else{ // appel api avec ancien mdp + nouveau mdp 
                     console.log("mots de passe identiques et conformes")
@@ -278,9 +266,7 @@ export default {
                             Authorization: `Bearer ${userData.token}`
                         },
                     })
-                    .then((response) => {
-                        console.log('mot de passe modifié avec succés');
-                        console.log(response)
+                    .then(() => {
                         this.updatePwd = false;
                     })
                     .catch((err) => {
@@ -290,11 +276,9 @@ export default {
             }
         },
         deleteUser(){
-            console.log('supprimer le compte');
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
-            console.log('userdata id : ' +userData.userId + ' profileId : ' + ProfileId)
-            console.log("userData admin : "+userData.isAdmin)
+
             if((userData.userId != ProfileId) && (userData.isAdmin != 1)){
                 alert("Cette opération ne vous est pas permise.")
             }
@@ -302,7 +286,6 @@ export default {
                 if(this.password === null || this.userEmail === null){
                     alert("Pour supprimer votre compte, vous devez saisir vos identifiant et mot de passe.")
                 }
-                console.log(this.userEmail + " " + this.password)
                 confirm("Vous allez supprimer votre compte et toutes vos publications. Merci de confirmer :")
                 axios({
                     method: "DELETE",
@@ -315,10 +298,8 @@ export default {
                         Authorization: `Bearer ${userData.token}`
                     }
                 })
-                .then((response) => {
-                    console.log('compte supprimé avec succés');
-                    console.log(response);
-                    if(userData.isAdmin === 1) {
+                .then(() => {
+                    if(userData.isAdmin == 1) {
                         this.$router.push('/feed');
                     }
                     else {
@@ -336,29 +317,23 @@ export default {
         },
         displayUser(){
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
-            //récup id de l'url
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
-            // console.log(ProfileId);
 
             axios
                 .get(`http://localhost:3000/api/users/profile/${ProfileId}`, {
-                    headers: { // définir les données requises + le token pour auth
+                    headers: { 
                         Authorization: `Bearer ${userData.token}`
                     }
                 })
                 .then((response) => {
-                    console.log("display user after update")
                     let userInfo = response.data[0]
-                    // console.log(userInfo)
                     this.userPseudo = userInfo.pseudo;
                     this.userName = userInfo.firstName;
                     this.userLastName = userInfo.lastName;
-                    // this.userEmail = userInfo.email;
                     this.profilePic = userInfo.profilePic;
                     window.location.reload(); // un peu long à charger voir si judicieux
                 })
                 .catch((err) => {
-                    console.log("l'erreur du get profile id est ici")
                     console.log(err)
                 });
         }
@@ -379,11 +354,8 @@ export default {
                 })
                 .then((response) => {
                     if((ProfileId == userData.userId) || (userData.isAdmin == 1)){
-                        console.log("ProfileId : " + ProfileId + " userDataId : " + userData.userId)
-                        console.log("userData Admin : " + userData.isAdmin)
-                        console.log("showUpdate" + this.showUpdate)
                         this.showUpdate = true
-                        console.log(this.showUpdate)
+                        // console.log(this.showUpdate)
                     } else {
                         this.showUpdate = false
                     }
@@ -393,9 +365,8 @@ export default {
                     this.profilePic = response.data[0].profilePic;
                 })
                 .catch((err) => {
-                // console.log("l'erreur du get profile id est ici")
-                console.log(err.response.data.message)
-                this.$router.push(`/notFound`);
+                    console.log(err.response.data.message)
+                    this.$router.push(`/notFound`);
             });
         }
     }
@@ -409,16 +380,13 @@ label {
     position: relative;
     padding: 0.5rem 1rem;
     border-radius: 5px;
-    /* transition: all 0.2s; */
     width: 100%;
 }
 label .password-icon {
     display: flex;
     align-items: center;
     position: absolute;
-    /* top: 50%; */
     right: 20px;
-    /* transform: translateY(-50%); */
     width: 30px;
     border: none;
     background: transparent;

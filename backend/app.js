@@ -5,7 +5,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 
-//importation des routes 
 const userRoutes = require('./routes/user');
 const postRoutes = require('./routes/post');
 
@@ -18,13 +17,7 @@ app
 .use(favicon(__dirname + '/icon.png')) //favicon logo groupomania
 .use(morgan('dev'))
 
-//CORS : traitement erreurs et ajout d'headers à supprimer après import de cors
-app.use((req, res, next) => {
-	res.setHeader('Access-Control-Allow-Origin', 'http://localhost/8080');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    next();
-});
+//Traitement des headers
 app.use(helmet());
 app.use(cors({origin:true}));
 app.use((req, res, next) => { // cross origin policy pour permettre le get et read des images sur cross origin (ports différents)

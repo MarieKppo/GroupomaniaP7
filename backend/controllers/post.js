@@ -3,21 +3,8 @@ const mysql = require('../Database').connection;
 const fs = require("fs"); // Permet de gérer les fichiers stockés
 const Utils = require("../utils/utils"); //importe la fonction pour décoder le token
 
-// fonction pour afficher tous les posts et partages
-
-// ajouter les noms des auteurs des publi qd partages : 
-// `SELECT  share.id_user AS 'partagé par',share.id AS 'partage n°', share.id_post AS 'post partagé:', 
-// `sharers`.pseudo, `sharers`.profilePic, `sharers`.lastName, `sharers`.firstName, 
-// `writers`.pseudo AS 'publi originale par',
-// posts.content, posts.visualContent, posts.id_user AS 'publié par'
-//             FROM share, users AS `sharers`, posts
-//             left outer JOIN users AS `writers` ON posts.id_user = `writers`.id
-//             WHERE share.id_user = `sharers`.id 
-//             AND share.id_post = posts.id
-//             ORDER BY share_date LIMIT 20``
-            
+// fonction pour afficher tous les posts et partages            
 exports.getAllPosts = (req, res, next) => {
-    console.log("je suis ici");
     let feed = [];
     let sqlGetAllPosts = `SELECT posts.id, posts.content, posts.visualContent, posts.date, posts.id_user,
     users.firstName, users.lastName, users.pseudo, users.profilePic
@@ -33,9 +20,6 @@ exports.getAllPosts = (req, res, next) => {
                 message: "Pas de publications à afficher !"
             });
         }
-        // res.status(200).json(result);
-        // console.log("nombre de posts : " + result.length)
-        // ajout d'un objet par post dans le tableau feed
         result.forEach(element => {
             let publication = {
                 shareId: null,
@@ -48,42 +32,47 @@ exports.getAllPosts = (req, res, next) => {
                 lastName: element.lastName,
                 content: element.content,
                 visualContent: element.visualContent,
-                type: 'Posté'
+                type: 'Publié',
+                authorId : null,
+                authorFirstName: null,
+                authorLastname: null,
             }
             feed.push(publication)
         });
-        // console.log("nombre de lignes dans le tableau feed : " + feed.length)
-            // recup et ajout au feed de tous les partages
-            let sqlGetAllSharedP = `SELECT share.*, share.id, share.id_post, users.pseudo, users.profilePic, users.lastName, users.firstName, posts.content, posts.visualContent
-            FROM share, users , posts
-            WHERE share.id_user = users.id 
-            AND share.id_post = posts.id
-            ORDER BY share_date LIMIT 20`;
+            let sqlGetAllSharedP = `SELECT share.id, share.share_date, share.id_user, share.id_post, 
+            sharers.pseudo, sharers.profilePic, sharers.firstName, sharers.lastName,
+            posts.content, posts.visualContent, posts.id_user AS 'authorId',
+            writers.firstName AS 'authorFirstame', writers.lastName AS 'authorLastname'
+                        FROM share, users AS sharers, posts
+                        left outer JOIN users AS writers ON posts.id_user = writers.id
+                        WHERE share.id_user = sharers.id 
+                        AND share.id_post = posts.id
+                        ORDER BY share_date LIMIT 20`;
             mysql.query(sqlGetAllSharedP, function (err, result) {
                 if (err) {
                     return res.status(500).json(err.message);
                 };
                 console.log("resulats requete des partages : " + result.length)
-                // ajout d'un objet par partage dans le tableau feed
                 result.forEach(element => {
                     let publication = {
                         shareId: element.id,
                         postId: element.id_post,
                         userId: element.id_user,
-                        date: element.share_date, //ajouter un script
+                        date: element.share_date, 
                         pseudo: element.pseudo,
                         profilePic: element.profilePic,
                         firstName: element.firstName,
                         lastName: element.lastName,
                         content: element.content,
                         visualContent: element.visualContent,
-                        type: 'Partagé'
+                        type: 'Partagé',                        
+                        authorId : element.authorId,
+                        authorFirstName: element.authorFirstame,
+                        authorLastname: element.authorLastname,
                     }
                     feed.push(publication)
                 });
-                console.log("nombre de lignes totales dans le tableau feed : " + feed.length)
                 feed.sort((a,b) =>  new Date(b.date) - new Date(a.date));
-                console.log(feed)
                 return res.status(200).json(feed)
             });
     });
@@ -98,31 +87,37 @@ exports.getAllPostsOfUser = (req, res, next) => {
     FROM posts, users
     WHERE users.id = posts.id_user AND users.id = ?
     ORDER BY posts.date LIMIT 20`;
-    let sqlGetAllSharedPByUser = `SELECT share.*, share.id, share.id_post,
-    users.pseudo, users.profilePic, users.lastName, users.firstName, 
-    posts.content, posts.visualContent
-    FROM share, users , posts
-    WHERE share.id_user = users.id AND share.id_post = posts.id AND users.id = ?
-    ORDER BY share_date LIMIT 20`;
+    let sqlGetAllSharedPByUser = `SELECT share.id, share.id_user, share.share_date, share.id_post, 
+    sharers.pseudo, sharers.profilePic, sharers.firstName, sharers.lastName,
+    posts.content, posts.visualContent, posts.id_user AS 'authorId',
+    writers.firstName AS 'authorFirstame', writers.lastName AS 'authorLastname'
+                FROM share, users AS sharers, posts
+                left outer JOIN users AS writers ON posts.id_user = writers.id
+                WHERE share.id_user = sharers.id 
+                AND share.id_post = posts.id
+                AND sharers.id = ?
+                ORDER BY share_date LIMIT 20`;
 
     mysql.query(sqlGetAllUserPosts, [userId], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
         };
-        console.log(`nombre de post de ${userId} = ${result.length}`)
         result.forEach(element => {
             let publication = {
                 shareId: null,
                 postId: element.id,
                 userId: element.id_user,
-                date: element.date, //ajouter un script
+                date: element.date, 
                 pseudo: element.pseudo,
                 profilePic: element.profilePic,
                 firstName: element.firstName,
                 lastName: element.lastName,
                 content: element.content,
                 visualContent: element.visualContent,
-                type: 'post'
+                type: 'Publié',                        
+                authorId : null,
+                authorFirstName: null,
+                authorLastname: null,
             }
             userFeed.push(publication)
         });
@@ -130,21 +125,22 @@ exports.getAllPostsOfUser = (req, res, next) => {
             if (err) {
                 return res.status(500).json(err.message);
             };
-            console.log("resulats requete des partages : " + result.length)
-            // ajout d'un objet par partage dans le tableau feed
             result.forEach(element => {
                 let publication = {
                     shareId: element.id,
                     postId: element.id_post,
                     userId: element.id_user,
-                    date: element.share_date, //ajouter un script
+                    date: element.share_date,
                     pseudo: element.pseudo,
                     profilePic: element.profilePic,
                     firstName: element.firstName,
                     lastName: element.lastName,
                     content: element.content,
                     visualContent: element.visualContent,
-                    type: 'partage'
+                    type: 'Partagé',                        
+                    authorId : element.authorId,
+                    authorFirstName: element.authorFirstame,
+                    authorLastname: element.authorLastname,
                 }
                 userFeed.push(publication)
             });
@@ -167,7 +163,6 @@ exports.getOnePost = (req, res, next) => {
     users.firstName, users.lastName, users.pseudo, users.profilePic
     FROM posts, users
     WHERE users.id = posts.id_user AND posts.id = ?`;
-    // `SELECT * FROM posts WHERE posts.id = ?`;
     mysql.query(sqlGetPost, [postId], function (err, result) {
         if (err) {
             return res.status(500).json(err.message);
@@ -193,17 +188,17 @@ exports.createPost = (req, res, next) => {
     let values;
     let message;
 
-    if (!req.file && textContentChecking) { // publi vide
+    if (!req.file && textContentChecking) { 
         return res.status(400).json({
             message: "vous ne pouvez pas envoyer une publication sans texte ou sans visuel"
         });
     };
-    if (!req.file && !textContentChecking) { // publication texte only
+    if (!req.file && !textContentChecking) { 
         values = [textContent, userId];
         sqlCreatePost = "INSERT INTO posts (content, date, id_user) VALUES (?, NOW(), ?)";
         message = "Publication texte créée !";
     }
-    if (req.file) { // si visuel test si texte ou non
+    if (req.file) { 
         const visualContent = `${req.protocol}://${req.get("host")}/fichiers/${req.file.filename}`;
         if (textContentChecking) { // pas de texte
             values = [visualContent, userId];
@@ -225,6 +220,7 @@ exports.createPost = (req, res, next) => {
         });
     });
 }
+// fin fonction poster
 
 // suppression d'une publi 
 exports.deleteOnePost = (req, res, next) => {
@@ -232,7 +228,6 @@ exports.deleteOnePost = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    // console.log('userId : ' + userId + " isAdmin : " + isAdmin + " postId " + postId)
     let sqlSelectPost = "SELECT * FROM posts WHERE id = ?";
     let sqlDeletePost = "DELETE FROM posts WHERE id_user = ? AND id = ?";
     mysql.query(sqlSelectPost, [postId], function (err, result) {
@@ -249,15 +244,12 @@ exports.deleteOnePost = (req, res, next) => {
         else {        
             if (result[0].visualContent !== null) { //if req.file : suppression image et ensuite mysql.query
                 const filename = result[0].visualContent.split("/fichiers/")[1];
-                // console.log(filename);
                 fs.unlink(`fichiers/${filename}`, (err => {
                     if (err) {
                         return res.status(500).json(err.message);
                     };
-                    // console.log("fichier suppr");
                 }));
             }
-            // console.log('elmt pr requete suppr post userId : ' + userId + " result[0].id_user " + result[0].id_user + ' postId : '+postId)
             mysql.query(sqlDeletePost, [result[0].id_user, postId], function (err, result) {
                 if (err) {
                     console.log("l'erreur est ici" + err)
@@ -270,11 +262,11 @@ exports.deleteOnePost = (req, res, next) => {
         } 
     });
 }
+// fin suppression d'une publi 
 
 // PARTAGES
 // fonction pour partager une publi
 exports.sharePost = (req, res, next) => {
-    console.log('dans la fonction sharepost backend')
     const postId = req.params.id;
     const token = Utils.getReqToken(req);
     const userId = token.userId;
@@ -316,7 +308,6 @@ exports.deleteSharedPost = (req, res, next) => {
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;
-    // console.log('userId : ' + userId + " isAdmin : " + isAdmin)
 
     let sqlGetSharedPost = `SELECT * FROM share WHERE id = ?`   
     mysql.query(sqlGetSharedPost, [sharedId], function (err, result) {
@@ -326,7 +317,6 @@ exports.deleteSharedPost = (req, res, next) => {
             });
         };
         if (userId === result[0].id_user || isAdmin) {
-            // console.log("l'utilisateur peut supprimer ce partage")
             if (err) {
                 return res.status(500).json(err.message);
             };
@@ -345,9 +335,6 @@ exports.deleteSharedPost = (req, res, next) => {
             });
         }
     });
-
-
-
 }
 
 // COMMENTAIRES
@@ -361,7 +348,6 @@ exports.createComment = (req, res, next) => {
 
     const commentChecking = (commentContent == null || commentContent == undefined || commentContent == "");
     if (commentChecking) {
-        // console.log("commentaire impossible si champ de texte vide");
         return res.status(400).json({
             message: "vous ne pouvez pas parler pour ne rien dire !"
         })

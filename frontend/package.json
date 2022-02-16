@@ -13,6 +13,7 @@
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
     "jquery": "^3.6.0",
+    "maskdata": "^1.1.6",
     "moment": "^2.29.1",
     "popper.js": "^1.16.1",
     "vue": "^2.6.11",
