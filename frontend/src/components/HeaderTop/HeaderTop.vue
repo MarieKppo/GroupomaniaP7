@@ -20,10 +20,11 @@ export default {
     },
     methods: {
         disconnect:function() {
-            alert("Êtes vous sur de vouloir vous déconnecter ?")
-            localStorage.clear();
-            this.$router.push(`/`); 
-            console.log('utilisateur déconnecté')
+            if(confirm("Vous allez être déconnecté.e.")) {
+                localStorage.clear();
+                this.$router.push(`/`); 
+                console.log('utilisateur déconnecté')
+            }        
         }
     }
 }
