@@ -28,7 +28,7 @@
                     id="visualContent" 
                     class="input-group border-light bg-white" 
                     placeholder="Votre image"
-                    accept="image/png, image/jpg, image/jpeg"
+                    accept="image/png, image/jpg, image/jpeg, image/gif"
                     v-on:change="fileChangePost"
                 >   
                 <button type="submit" class="btn mt-1">Publier</button> 
@@ -43,7 +43,7 @@
                             Il n'y a pas de publications à afficher. Rédigez la première !
                         </div>
                     </div>
-                <div v-bind:key="date" v-for="(post, date) in posts" class="card my-3 mx-1" name="publication"> <!-- class="p-2" -->
+                <div v-bind:key="id" :id="`card-`+ id" v-for="(post, id) in posts" class="card my-3 mx-1" name="publication"> 
                         <div class="card-body">
                             <!-- info utilisateur et options suppr -->
                             <div class="card-title d-flex justify-content-between">
@@ -66,7 +66,7 @@
                                 </div>
                                 <div class="postOptions">
                                     <button name="partager" alt="Partager ce contenu sur mon profil" class="card-link btn" @click="sharePost(post.postId)" role="button">Partager</button> 
-                                    <!-- <button name="commenter" class="card-link btn" role="button">Commentaires</button> -->
+                                    <!-- <button name="commenter" class="card-link btn" role="button" @click="showComments(post.postId)">Voir les commentaires</button> -->
                                 </div>
                             </div>
                         </div>
@@ -89,7 +89,6 @@ export default {
             posts: [],  
             comments: [],
             textContent: null,
-            visualContent: null
         };
     },
     created() {
@@ -230,9 +229,7 @@ export default {
         showUserProfile(id){
             this.$router.push(`/profile/${id}`)
         }
-
     }
-
 }
 </script>
 

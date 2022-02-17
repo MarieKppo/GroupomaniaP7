@@ -21,7 +21,7 @@
                     id="visualContent" 
                     class="input-group border-light bg-white" 
                     placeholder="Votre image"
-                    accept="image/png, image/jpg, image/jpeg"
+                    accept="image/png, image/jpg, image/jpeg, image/gif"
                     v-on:change="fileChangePost"
                     alt="vous pouvez sélectionner l'image que vous voulez publier"
                 > 
@@ -32,8 +32,7 @@
             <h5>Publications</h5>
             <div class="card noPosts mb-3"> 
             </div>
-            <div v-bind:key="id" :id="`card-`+ id" v-for="(post, id) in posts">
-                <div class="card"> <!-- v-for v-model -->
+            <div v-bind:key="id" :id="`card-`+id" v-for="(post, id) in posts" class="card mb-3">
                     <div class="card-body">
                         <!-- info utilisateur et options suppr -->
                         <div class="card-title d-flex justify-content-between">
@@ -60,7 +59,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
                 <br>
             </div>
         </div>
@@ -77,7 +75,6 @@ export default {
             userId: "",
             token: "",
             posts: [], // stocke la data de chaque post 
-            comments: null,
             textContent: null,
             visualContent: null,
             ProfileId: ""
@@ -198,7 +195,8 @@ export default {
                     })   
                     .then(() => {
                         // this.displayAllUserPosts();
-                        document.querySelector("#card-"+ id).remove()
+                        document.querySelector(`#card-${id}`).remove();
+                        // window.location.reload()
                     })
                     .catch((error) => console.log(error));
             }
