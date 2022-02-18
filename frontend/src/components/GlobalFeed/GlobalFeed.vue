@@ -88,7 +88,8 @@ export default {
             token: "",
             posts: [],  
             comments: [],
-            textContent: null,
+            textContent: "",
+            visualContent: null
         };
     },
     created() {

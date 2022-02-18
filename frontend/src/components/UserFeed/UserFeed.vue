@@ -75,7 +75,7 @@ export default {
             userId: "",
             token: "",
             posts: [], // stocke la data de chaque post 
-            textContent: null,
+            textContent: "",
             visualContent: null,
             ProfileId: ""
         };

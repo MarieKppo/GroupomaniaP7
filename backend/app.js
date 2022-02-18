@@ -23,7 +23,8 @@ app.use(cors({origin:true}));
 app.use((req, res, next) => { // cross origin policy pour permettre le get et read des images sur cross origin (ports différents)
 	res.header("Cross-Origin-Resource-Policy", "cross-origin");
 	next();
-  });
+}); // ou app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+
 
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
