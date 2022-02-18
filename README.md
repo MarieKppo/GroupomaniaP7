@@ -4,7 +4,7 @@ Ce projet est le dernier de la formation développeur web OpenClassrooms.
 Il consiste à construire un réseau social interne pour les employés de Groupomania, un groupe spécialisé dans la grande distribution.</p>
 
 ## BACKEND 
-- API REST ([Documentation est disponible ici](https://documenter.getpostman.com/view/19113977/UVkiRJAU))
+- API REST ([Documentation disponible ici](https://documenter.getpostman.com/view/19113977/UVkiRJAU))
 - Protections des données
 - Réalisé avec : 
     - Node.js v17.3.0
