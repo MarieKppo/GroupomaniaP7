@@ -71,6 +71,8 @@ label .password-icon .eye-fill {
   display: inline-block;
   width: 200px;
   height: 200px;
+  max-width: 200px;
+  max-height: 200px;
   border: 1px solid grey;
   object-fit: cover;
 }
@@ -101,4 +103,10 @@ a {
 
 .bg-blue {
   background-color: #162847 !important;
+}
+.visualContent{
+  max-width: 600px!important;
+  max-height: auto!important;
+  width: 600px;
+  height: auto;
 }

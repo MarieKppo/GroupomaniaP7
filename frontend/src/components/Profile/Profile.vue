@@ -163,27 +163,31 @@ export default {
         updateProfilePic(){
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
-
-            const formData = new FormData();
-            formData.append("profilePic", this.newProfilePic)
-            axios({
-                method: "put",
-                url: `http://localhost:3000/api/users/profilePic/${ProfileId}`,
-                data: formData,
-                headers: { // définir les données requises + le token pour auth
-                    "content-type": "multipart/form-data",
-                    Authorization: `Bearer ${userData.token}`
-                },
-            })
-            .then(() => {
-                document.querySelector("#newPic").value = null;
-                this.updatePic = false;
-                this.displayUser();
-            })
-            .catch((err) =>  {
-                console.log("l'erreur est ici")
-                console.log(err)
-            });
+            console.log(this.newProfilePic)
+            if(this.newProfilePic === ""){
+                alert("Sélectionnez un fichier image pour modifier votre photo de profil svp.")
+            }else {
+                const formData = new FormData();
+                formData.append("profilePic", this.newProfilePic)
+                axios({
+                    method: "put",
+                    url: `http://localhost:3000/api/users/profilePic/${ProfileId}`,
+                    data: formData,
+                    headers: { // définir les données requises + le token pour auth
+                        "content-type": "multipart/form-data",
+                        Authorization: `Bearer ${userData.token}`
+                    },
+                })
+                .then(() => {
+                    document.querySelector("#newPic").value = null;
+                    this.updatePic = false;
+                    this.displayUser();
+                })
+                .catch((err) =>  {
+                    console.log("l'erreur est ici")
+                    console.log(err)
+                });
+            }
         },
         switchVisibility() { // changer la visibilité du mdp pour contrôler ce qui est saisi 
             const eye = document.querySelector(".eye");
