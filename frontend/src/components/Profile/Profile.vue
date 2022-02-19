@@ -163,8 +163,8 @@ export default {
         updateProfilePic(){
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
-            console.log(this.newProfilePic)
-            if(this.newProfilePic === ""){
+
+if(this.newProfilePic === ""){
                 alert("Sélectionnez un fichier image pour modifier votre photo de profil svp.")
             }else {
                 const formData = new FormData();
