@@ -47,7 +47,7 @@
                         </div> 
                         <!-- contenu publication -->
                         <p class="card-text">{{ post.content }}</p>
-                        <img class="card-img mb-2" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId"/>
+                        <img class="card-img mb-2 visualContent" v-if="post.visualContent" v-bind:src="post.visualContent" :alt="'image du post : ' + post.postId + `publié par `+ post.firstName + ` ` + post.lastName "/>
                         <!-- info publication et option partage -->
                         <div class="d-flex justify-content-between">
                             <div class="d-flex flex-column">
