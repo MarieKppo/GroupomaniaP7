@@ -36,11 +36,11 @@ exports.signup = (req, res, next) => {
             })
             .catch(e => res.status(500).json(e));
     }else {
-        if((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/).test(req.body.password)){
+        if(!(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/).test(req.body.password)){
             return res.status(400).json({
                 message : "Votre mot de passe doit contenir au moins 8 caractères dont au moins 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial."})
         }
-        if((/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).test(req.body.email)){
+        if(!(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).test(req.body.email)){
             return res.status(400).json({
                 message : "Votre adresse mail doit correspondre au format \"xxx@xxx.xxx\"."})
         }
