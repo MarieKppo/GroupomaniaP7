@@ -255,7 +255,7 @@ exports.deleteOnePost = (req, res, next) => {
                     console.log("l'erreur est ici" + err)
                     return res.status(500).json(err.message);
                 };
-                res.status().json({
+                res.status(200).json({
                     message: "Publication supprimée !"
                 });
             });
