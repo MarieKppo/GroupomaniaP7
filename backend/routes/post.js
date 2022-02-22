@@ -16,8 +16,8 @@ router.post('/share/:id', auth, postCtrl.sharePost);
 router.get('/share/:id', auth, postCtrl.getOneSharedPost);
 router.delete('/share/:id', auth, postCtrl.deleteSharedPost); 
 //routes pour les commentaires
-router.post("/comment/:id", auth, postCtrl.createComment);
-router.get("/comments/:id", auth, postCtrl.getAllComments); 
-router.delete("/comment/:id", auth, postCtrl.deleteOneComment);
+router.post("/:id/comment", auth, postCtrl.createComment);
+router.get("/:id/comments", auth, postCtrl.getAllComments); 
+router.delete("/:id/comments/:commentIid", auth, postCtrl.deleteOneComment);
 
 module.exports = router;

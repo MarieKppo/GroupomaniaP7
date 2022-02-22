@@ -255,7 +255,7 @@ exports.deleteOnePost = (req, res, next) => {
                     console.log("l'erreur est ici" + err)
                     return res.status(500).json(err.message);
                 };
-                res.status(200).json({
+                res.status().json({
                     message: "Publication supprimée !"
                 });
             });
@@ -404,7 +404,8 @@ exports.getAllComments = (req, res, next) => {
 }
 // delete one comment
 exports.deleteOneComment = (req, res, next) => {
-    const commentId = req.params.id;
+    const commentId = req.params.commentIid;
+    const postId = req.params.id;
     const token = Utils.getReqToken(req);
     const userId = token.userId;
     const isAdmin = token.isAdmin;

@@ -254,7 +254,7 @@ exports.modifyUserPassword = (req, res, next) => {
                                                 message: "Echec du changement de mot de passe"
                                             });
                                         }
-                                        return res.status(200).json({
+                                        return res.status(201).json({
                                             message: "Mot de passe modifié avec succès !"
                                         });
                                     });
@@ -293,7 +293,7 @@ exports.deleteOneUser = (req, res, next) => {
                 return res.status(500).json(err.message);
             }
             if (result.length == 0) {
-                return res.status(401).json({
+                return res.status(404).json({
                     error: "Utilisateur non trouvé !"
                 });
             }            
@@ -323,7 +323,7 @@ exports.deleteOneUser = (req, res, next) => {
                                 message: "échec suppression"
                             });
                         }
-                        res.status(200).json({
+                        res.status(204).json({
                             message: "Compte utilisateur supprimé !"
                         });
                     });
@@ -342,7 +342,7 @@ exports.deleteOneUser = (req, res, next) => {
                 return res.status(500).json(err.message);
             }
             if (result.length == 0) {
-                return res.status(401).json({
+                return res.status(404).json({
                     error: "Utilisateur non trouvé !"
                 });
             }
@@ -379,7 +379,7 @@ exports.deleteOneUser = (req, res, next) => {
                                     message: "échec suppression"
                                 });
                             }
-                            res.status(200).json({
+                            res.status(204).json({
                                 message: "Compte utilisateur supprimé !"
                             });
                         });
