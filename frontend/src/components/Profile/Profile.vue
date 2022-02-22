@@ -23,20 +23,20 @@
             <!-- changement pseudo -->
             <div id="udpdatePseudo" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePsd"> 
                     <p>Quel est votre nouveau pseudo ?</p>
-                <label>
+                <label>Saisir le nouveau pseudo :
                     <input type="text" id="newPseudo" name="newPseudo" v-model="newPseudo" placeholder="Mon nouveau pseudo">
                 </label>
-                <label> 
+                <label>Renseigner votre mot de passe :
                     <input type="password" required v-model="password" id="password" name="password" placeholder="Confirmer le changement avec mon mot de passe :" class="mb-2">
-                    <switch-v-1/>
+                    <switch-v/>
                 </label>
                 <p v-if="checkPseudo" class="rounded border border-danger px-3 mt-1 text-danger">Votre pseudo doit contenir au moins 3 caractères :)</p>
                 <button for="newPseudo" class="btn" @click="updatePseudo()">Modifier mon pseudo</button>
             </div>
             <!-- changement profilePic -->
             <div id="updatePic" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePic"> <!-- faire de cette div un seul block bouton-->
-                    <p>Sélectionnez une nouvelle image (format : jpg, jpeg ou png) : </p>
-                <label>
+                    <p>Changer de photo de profil : </p>
+                <label>Sélectionner une nouvelle photo (format : jpg, jpeg ou png) :
                 <input type="file" id="newPic" name="newPic" v-on:change="changeFilePic" accept="image/png, image/jpg, image/jpeg">
                 </label>
                 <button for="newPic" class="btn" @click="updateProfilePic()">Modifier ma photo</button>
@@ -45,15 +45,15 @@
             <div id="updatePwd" class="mt-1 card mb-3 bg-light p-2 rounded border-dark" v-if="updatePwd"> <!-- faire de cette div un seul block bouton-->
                     <p>Pour changer de mot de passe : </p>
                 <div>
-                    <label>
+                    <label>Saisir votre mot de passe actuel :
                         <input type="password" required v-model="password" id="password" name="password" placeholder="Mon mot de passe actuel" class="mb-2">
-                        <switch-v-1/>
+                        <switch-v/>
                     </label>
-                    <label> 
+                    <label>Saisir votre nouveau mot de passe : 
                         <input type="password" required  v-model="newPassword" id="newPassword" name="newPassword" placeholder="Mon nouveau mot de passe">
-                        <switch-v-1/>
+                        <switch-v/>
                     </label>
-                    <label>               
+                    <label>Confirmer votre nouveau mot de passe :          
                         <input type="password" required v-model="newPassword2" id="newPassword2" name="newPassword2" placeholder="Confirmez mon nouveau mot de passe" class="pb-2">                            <switch-v-1/>
                     </label>
                         <p v-if="newPassword!==newPassword2" class="rounded border border-danger px-3 mt-1 text-danger" >Les mots de passe saisis ne correspondent pas</p>
@@ -64,12 +64,12 @@
             <div id="deleteProfile" class="mt-1 card mb-3 bg-light p-2 rounded border-danger" v-if="deleteProfile"> <!-- faire de cette div un seul block bouton-->
                     <p>Pour supprimer votre compte : </p>
                 <div>
-                    <label class="mb-1">
+                    <label class="mb-1">Saisir votre adresse email : 
                         <input type="text" id="email" name="email" class="border-danger" required v-model="userEmail" placeholder="Mon email">
                     </label>
-                    <label>
+                    <label>Saisir votre mot de passe :
                         <input type="password" id="password" name="password" class="border-danger" required v-model="password" placeholder="Mon mot de passe :">
-                        <switch-v-1/>
+                        <switch-v/>
                     </label>
                 </div>
                 <button for="newPic" class="btn btn-danger mt-2" @click="deleteUser()">Supprimer mon compte</button>
@@ -79,7 +79,7 @@
 
 <script>
 import axios from 'axios'; 
-import switchVisibility1 from '../switchVisibility1.vue'
+import switchVisibility from '../switchVisibility.vue'
 
 export default {
     name: 'Profile',
@@ -106,7 +106,7 @@ export default {
         };
     },
     components: {
-        'switchV1': switchVisibility1
+        'switchV': switchVisibility
     },
     methods : {
         // afficher options de modif ou suppression
@@ -290,31 +290,32 @@ export default {
                 if(this.password === null || this.userEmail === null){
                     alert("Pour supprimer votre compte, vous devez saisir vos identifiant et mot de passe.")
                 }
-                confirm("Vous allez supprimer votre compte et toutes vos publications. Merci de confirmer :")
-                axios({
-                    method: "DELETE",
-                    url: `http://localhost:3000/api/users/profile/${ProfileId}`,
-                    data: {
-                        "email" : this.userEmail,
-                        "password": this.password
-                    },
-                    headers: {
-                        Authorization: `Bearer ${userData.token}`
-                    }
-                })
-                .then(() => {
-                    if(userData.isAdmin == 1) {
-                        this.$router.push('/feed');
-                    }
-                    else {
-                        localStorage.clear()
-                        this.$router.push('/');
-                    }
-                })
-                .catch((err) => {
-                    console.log(err)
-                    alert(JSON.stringify(err.response.data.error))
-                });
+                if(confirm("Vous allez supprimer votre compte et toutes vos publications. Merci de confirmer :")) {
+                    axios({
+                        method: "DELETE",
+                        url: `http://localhost:3000/api/users/profile/${ProfileId}`,
+                        data: {
+                            "email" : this.userEmail,
+                            "password": this.password
+                        },
+                        headers: {
+                            Authorization: `Bearer ${userData.token}`
+                        }
+                    })
+                    .then(() => {
+                        if(userData.isAdmin == 1) {
+                            this.$router.push('/feed');
+                        }
+                        else {
+                            localStorage.clear()
+                            this.$router.push('/');
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                        alert(JSON.stringify(err.response.data.error))
+                    });
+                }
             }
             
 

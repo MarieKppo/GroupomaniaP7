@@ -11,26 +11,35 @@
         <div class="my-3 bg-light p-2 rounded" alt="fil de publication de Groupomania">
             <h5>Publier du contenu</h5>
             <form @submit.prevent=createPost() class="card"> 
-                <textarea 
-                    type="textarea" 
-                    name="textContent" 
-                    id="textContent" 
-                    class="border-light" 
-                    v-model=" textContent " 
-                    placeholder="Que voulez-vous partager aujoud'hui ?"
-                    minlength="3" 
-                    maxlength="3000" 
-                    size="150">
-                </textarea>
-                <input 
+                <label>
+                    <label name="textContent" alt="Rédiger ici le texte que vous souhaitez partager">
+                        Rédiger votre texte
+                    </label>
+                    <textarea 
+                        type="textarea" 
+                        name="textContent" 
+                        id="textContent" 
+                        class="border-light" 
+                        v-model=" textContent " 
+                        placeholder="Que voulez-vous partager aujoud'hui ?"
+                        minlength="3" 
+                        maxlength="3000" 
+                        size="150">
+                    </textarea>
+                </label>
+                <label>
+                    <label name="visualContent" alt="Sélectionner une image au format .jpeg, .jpeg, .png ou .gif">
+                    Choississez une image
+                    </label>
+                    <input 
                     type="file" 
                     name="visualContent" 
                     id="visualContent" 
                     class="input-group border-light bg-white" 
                     placeholder="Votre image"
                     accept="image/png, image/jpg, image/jpeg, image/gif"
-                    v-on:change="fileChangePost"
-                >   
+                    v-on:change="fileChangePost">   
+                </label>
                 <button type="submit" class="btn mt-1">Publier</button> 
             </form>
 
@@ -53,7 +62,7 @@
                                     <p class="card-title p-2" v-if="(post.pseudo == null) || (post.pseudo == '')">{{ post.firstName }} {{ post.lastName }}</p>
                                 </div>
                                 <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Publié')" @click="deletePost(post.postId)" role="button"></b-icon>
-                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Partagé')" @click="deleteShare(post.shareId)" role="button"></b-icon>
+                                <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Partagé')" @click="deleteShare(post.shareId, id)" role="button"></b-icon>
                             </div> 
                             <!-- contenu publication -->
                             <p class="card-text">{{ post.content }}</p>
@@ -194,7 +203,7 @@ export default {
             }
         },
         //supprimer un partage
-        deleteShare(shareId) {
+        deleteShare(shareId, id) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
             if (confirm("Voulez vous vraiment supprimer ce partage ?")) {
@@ -205,8 +214,9 @@ export default {
                         }
                     })   
                     .then(() => {
-                        this.displayAllPosts();
-                        window.location.reload()
+                        document.querySelector(`#card-${id}`).remove();
+                        // this.displayAllPosts();
+                        // window.location.reload()
                     })
                     .catch((error) => console.log(error));
             }

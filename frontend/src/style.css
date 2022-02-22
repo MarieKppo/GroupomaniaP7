@@ -36,7 +36,7 @@ label .password-icon {
   display: flex;
   align-items: center;
   position: absolute;
-  top: 50%;
+  top: 60%;
   right: 20px;
   transform: translateY(-50%);
   width: 20px;
@@ -54,6 +54,9 @@ label .password-icon .eye-fill {
   display: block;
 }
 
+textarea{
+  width: 100%;
+}
 .profilePicU {
   display: inline-block;
   width: 50px;
@@ -97,8 +100,9 @@ a {
 }
 
 .btn {
-  background-color: #d0555d !important;
+  background-color: #162847 !important;
   color: white !important;
+  font-weight: bold;
 }
 
 .bg-blue {

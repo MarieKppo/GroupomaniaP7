@@ -3,28 +3,36 @@
         <div class="my-3 bg-light p-2 rounded" v-if="userId == ProfileId">
             <h5>Publier du contenu</h5>    
             <form @submit.prevent=createPost() class="card" alt="zone de saisie de publication"> 
-                <textarea 
-                    type="textarea" 
-                    name="textContent" 
-                    id="textContent" 
-                    class="border-light" 
-                    v-model=" textContent " 
-                    placeholder="Que voulez-vous partager aujoud'hui ?"
-                    minlength="3" 
-                    maxlength="1000" 
-                    size="150"
-                    alt="vous pouvez saisir ici le message que vous souhaitez partager">
-                </textarea>
-                <input 
-                    type="file" 
-                    name="visualContent" 
-                    id="visualContent" 
-                    class="input-group border-light bg-white" 
-                    placeholder="Votre image"
-                    accept="image/png, image/jpg, image/jpeg, image/gif"
-                    v-on:change="fileChangePost"
-                    alt="vous pouvez sélectionner l'image que vous voulez publier"
-                > 
+                <label>
+                    <label name="textContent" alt="Rédiger ici le texte que vous souhaitez partager">Rédigez votre texte</label>
+                    <textarea 
+                        type="textarea" 
+                        name="textContent" 
+                        id="textContent" 
+                        class="border-light" 
+                        v-model=" textContent " 
+                        placeholder="Que voulez-vous partager aujoud'hui ?"
+                        minlength="3" 
+                        maxlength="1000" 
+                        size="150"
+                        alt="vous pouvez saisir ici le message que vous souhaitez partager">
+                    </textarea>
+                </label>
+                <label>
+                    <label name="visualContent" alt="Sélectionner une image au format .jpeg, .jpeg, .png ou .gif">
+                    Choississez une image
+                    </label>                       
+                    <input 
+                        type="file" 
+                        name="visualContent" 
+                        id="visualContent" 
+                        class="input-group border-light bg-white" 
+                        placeholder="Votre image"
+                        accept="image/png, image/jpg, image/jpeg, image/gif"
+                        v-on:change="fileChangePost"
+                        alt="vous pouvez sélectionner l'image que vous voulez publier"
+                    >
+                </label> 
                 <button type="submit" class="btn mt-1">Publier</button>
             </form>
         </div>

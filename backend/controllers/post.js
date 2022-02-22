@@ -321,7 +321,7 @@ exports.deleteSharedPost = (req, res, next) => {
                 return res.status(500).json(err.message);
             };
             let sqlDeleteSharedPost = `DELETE FROM share WHERE share.id = ? AND share.id_user = ?`;
-            mysql.query(sqlDeleteSharedPost, [sharedId, userId], function (err, result) {
+            mysql.query(sqlDeleteSharedPost, [sharedId, result[0].id_user], function (err, result) { 
                 if (err) {
                     return res.status(500).json(err.message);
                 };

@@ -18,6 +18,7 @@ Il consiste à construire un réseau social interne pour les employés de Groupo
 - Cloner ce repository,
 - Créer la base de données "groupomania" en vous référant au fichier backend/.GroupomaniaDB.slq, y insérer un utilisateur adminisatrateur (1).
 - Créer le fichier .env en y remplaçant les vides par les données précisées dans .env.example
+- Créer un dossier `fichiers` à la racine du dossier `backend`
 - Depuis la racine du projet, lancer successivement les commandes : `cd backend` / `npm install` / `npm run start`
 - Puis les commandes : `cd frontend` / `npm install` / `npm run serve` pour lancer l'application.
 - Ouvrir localhost8080http://localhost:8080/ sur votre navigateur.
