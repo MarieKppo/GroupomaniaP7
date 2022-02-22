@@ -152,7 +152,7 @@ export default {
                 })
                 .then(() => {
                     this.textContent = null,
-                    this.visualContent = null,
+                    this.visualContent = "",
                     document.querySelector("#textContent").value = null;
                     document.querySelector("#visualContent").value = null;
                     this.displayAllPosts();

@@ -88,6 +88,7 @@ exports.login = (req, res, next) => {
 // fonction pour afficher le profil
 exports.getOneUser = (req, res, next) => {
     let userId = req.params.id;
+    console.log(req.params.id)
     const sqlGetUser = `SELECT id AS userId, lastName, firstName, email, pseudo, profilePic
     FROM users WHERE id = ?`;
     mysql.query(sqlGetUser, [userId], function (err, result) {

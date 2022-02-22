@@ -171,7 +171,7 @@ export default {
                 formData.append("profilePic", this.newProfilePic)
                 axios({
                     method: "put",
-                    url: `http://localhost:3000/api/users/profilePic/${ProfileId}`,
+                    url: `http://localhost:3000/api/users/${ProfileId}/profilePic`,
                     data: formData,
                     headers: { // définir les données requises + le token pour auth
                         "content-type": "multipart/form-data",
@@ -215,7 +215,7 @@ export default {
                     if(userData.isAdmin || userData.userId == ProfileId){
                         axios({
                             method: 'put',
-                            url: `http://localhost:3000/api/users/pseudo/${ProfileId}`,
+                            url: `http://localhost:3000/api/users/${ProfileId}/pseudo`,
                             data: {
                                 "pseudo": this.newPseudo,
                                 "password": this.password
@@ -261,7 +261,7 @@ export default {
                     console.log("mots de passe identiques et conformes")
                     axios({
                         method: "put", 
-                        url: `http://localhost:3000/api/users/password/${ProfileId}`,
+                        url: `http://localhost:3000/api/users/${ProfileId}/password`,
                         data: {
                             "password": this.password,
                             "newPassword": this.newPassword
@@ -293,7 +293,7 @@ export default {
                 if(confirm("Vous allez supprimer votre compte et toutes vos publications. Merci de confirmer :")) {
                     axios({
                         method: "DELETE",
-                        url: `http://localhost:3000/api/users/profile/${ProfileId}`,
+                        url: `http://localhost:3000/api/users/${ProfileId}`,
                         data: {
                             "email" : this.userEmail,
                             "password": this.password
@@ -325,7 +325,7 @@ export default {
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
             axios
-                .get(`http://localhost:3000/api/users/profile/${ProfileId}`, {
+                .get(`http://localhost:3000/api/users/${ProfileId}`, {
                     headers: { 
                         Authorization: `Bearer ${userData.token}`
                     }
@@ -352,7 +352,7 @@ export default {
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
             axios
-                .get(`http://localhost:3000/api/users/profile/${ProfileId}`, {
+                .get(`http://localhost:3000/api/users/${ProfileId}`, {
                     headers: { // définir les données requises + le token pour auth
                         Authorization: `Bearer ${userData.token}`
                     }

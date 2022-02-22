@@ -49,7 +49,7 @@
                                 <p class="card-title p-2 font-weight-bold">{{ post.pseudo }}</p>
                                 <p class="card-title p-2" v-if="(post.pseudo == null) || (post.pseudo == '')">{{ post.firstName }} {{ post.lastName }}</p>
                             </div>
-                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Publié')" @click="deletePost(post.postId)" role="button"></b-icon>
+                            <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Publié')" @click="deletePost(post.postId, id)" role="button"></b-icon>
                             <b-icon icon="trash-fill" v-if="(admin == true || userId == post.userId) && (post.type == 'Partagé')" @click="deleteShare(post.shareId, id)" role="button"></b-icon>
                         </div> 
                         <!-- contenu publication -->
@@ -100,7 +100,7 @@ export default {
 
             //afficher les posts
             axios
-                .get(`http://localhost:3000/api/posts/profile/${this.ProfileId}/posts`, {
+                .get(`http://localhost:3000/api/posts/profile/${this.ProfileId}`, {
                     headers: {
                         'Authorization': `Bearer ${userData.token}`,
                     }
@@ -141,11 +141,11 @@ export default {
                 .then(() => {
                     console.log("Posté avec succés !")
                     this.textContent = null,
-                    this.visualContent = null,
+                    this.visualContent = "",
                     document.querySelector("#textContent").value = null;
                     document.querySelector("#visualContent").value = null;
                     this.displayAllUserPosts();
-                    window.location.reload()
+                    // window.location.reload()
                 })
                 .catch((error) => {
                     console.log(error);
@@ -173,7 +173,7 @@ export default {
             }
         },
         //supprimer un post
-        deletePost(postId) {
+        deletePost(postId, id) {
             let userData = JSON.parse(localStorage.getItem("connectedUser"));
             this.token = userData.token;
             if (confirm("Voulez vous vraiment supprimer ce post ?")) {
@@ -185,7 +185,8 @@ export default {
                     })   
                     .then(() => {
                         // this.displayAllUserPosts();
-                        window.location.reload()
+                        document.querySelector(`#card-${id}`).remove();
+                        // window.location.reload()
                     })
                     .catch((error) => console.log(error));
             }
@@ -202,7 +203,7 @@ export default {
                         }
                     })   
                     .then(() => {
-                        // this.displayAllUserPosts();
+                        this.displayAllUserPosts();
                         document.querySelector(`#card-${id}`).remove();
                         // window.location.reload()
                     })
@@ -215,7 +216,7 @@ export default {
             let ProfileId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
             axios
-                .get(`http://localhost:3000/api/posts/profile/${ProfileId}/posts`, {
+                .get(`http://localhost:3000/api/posts/profile/${ProfileId}`, {
                     headers: {
                         'Authorization': `Bearer ${userData.token}`,
                     }
